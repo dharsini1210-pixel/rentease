@@ -1,32 +1,21 @@
-import {
-  useEffect,
-  useState,
-} from "react";
-
+import { useEffect, useState } from "react";
 import axios from "axios";
-
-import {
-  useParams,
-  useNavigate,
-} from "react-router-dom";
-
-import {
-  toast,
-} from "react-toastify";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function ProductDetails() {
 
-  const { id } =
-    useParams();
+  const { id } = useParams();
 
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
-  const [product, setProduct] =
-    useState(null);
+  const [product, setProduct] = useState(null);
 
-  const [quantity, setQuantity] =
-    useState(1);
+  const [quantity, setQuantity] = useState(1);
+
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState("");
 
   // =========================
   // FETCH PRODUCT
@@ -37,191 +26,197 @@ function ProductDetails() {
 
   }, []);
 
-  const fetchProduct =
-    async () => {
+  const fetchProduct = async () => {
 
-      try {
+    try {
 
-        const res =
-          await axios.get(
+      setLoading(true);
 
-            `https://rentease-d1zx.onrender.com/api/products/${id}`
-          );
+      const res = await axios.get(
+        `https://rentease-d1zx.onrender.com/api/products/${id}`
+      );
 
-        setProduct(
-          res.data
-        );
+      setProduct(res.data);
 
-      } catch (error) {
+      setError("");
 
-        console.log(error);
+    } catch (error) {
 
-        toast.error(
-          "❌ Failed to load product"
-        );
-      }
-    };
+      console.log(error);
+
+      setError("Failed to load product");
+
+      toast.error("❌ Failed to load product");
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
 
   // =========================
   // ADD TO CART
   // =========================
-  const addToCart =
-    async () => {
+  const addToCart = async () => {
 
-      try {
+    try {
 
-        const userInfo =
-          JSON.parse(
-            localStorage.getItem(
-              "userInfo"
-            )
-          );
+      const userInfo = JSON.parse(
+        localStorage.getItem("userInfo")
+      );
 
-        const token =
-          userInfo?.token;
+      const token = userInfo?.token;
 
-        // LOGIN CHECK
-        if (!token) {
+      // LOGIN CHECK
+      if (!token) {
 
-          navigate("/login");
+        navigate("/login");
 
-          return;
-        }
+        return;
+      }
 
-        // OUT OF STOCK CHECK
-        if (
-          product.stock <= 0 ||
-          !product.available
-        ) {
-
-          toast.error(
-            "❌ Product Out Of Stock"
-          );
-
-          return;
-        }
-
-        await axios.post(
-
-          "https://rentease-d1zx.onrender.com/api/cart",
-
-          {
-            productId:
-              product._id,
-
-            quantity,
-          },
-
-          {
-            headers: {
-
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
-
-        toast.success(
-          "✅ Added To Cart"
-        );
-
-      } catch (error) {
-
-        console.log(error);
+      // OUT OF STOCK CHECK
+      if (
+        product.stock <= 0 ||
+        !product.available
+      ) {
 
         toast.error(
-          "❌ Failed to add to cart"
+          "❌ Product Out Of Stock"
         );
+
+        return;
       }
-    };
+
+      await axios.post(
+
+        "https://rentease-d1zx.onrender.com/api/cart",
+
+        {
+          productId: product._id,
+          quantity,
+        },
+
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast.success("✅ Added To Cart");
+
+    } catch (error) {
+
+      console.log(error);
+
+      toast.error("❌ Failed to add to cart");
+    }
+  };
 
   // =========================
-  // LOADING
+  // LOADING SCREEN
   // =========================
-  if (!product) {
+  if (loading) {
 
     return (
 
-      <h1
+      <div
         style={{
-          textAlign:
-            "center",
-
-          marginTop:
-            "100px",
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: "40px",
+          fontWeight: "bold",
+          color: "#1e3c72",
         }}
       >
-        Loading...
-      </h1>
+        Loading Product...
+      </div>
     );
   }
 
+  // =========================
+  // ERROR SCREEN
+  // =========================
+  if (error) {
+
+    return (
+
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+
+        <h1 style={{ color: "red" }}>
+          {error}
+        </h1>
+
+        <button
+          onClick={fetchProduct}
+          style={{
+            marginTop: "20px",
+            padding: "12px 25px",
+            background: "#667eea",
+            color: "white",
+            border: "none",
+            borderRadius: "10px",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          Retry
+        </button>
+
+      </div>
+    );
+  }
+
+  // =========================
+  // MAIN UI
+  // =========================
   return (
 
     <div
       style={{
-        minHeight:
-          "100vh",
-
+        minHeight: "100vh",
         background:
           "linear-gradient(135deg, #667eea, #764ba2, #6dd5ed)",
-
-        padding:
-          "50px",
+        padding: "50px",
       }}
     >
 
       <div
         style={{
-          display:
-            "flex",
-
-          flexWrap:
-            "wrap",
-
+          display: "flex",
+          flexWrap: "wrap",
           gap: "40px",
-
-          background:
-            "white",
-
-          padding:
-            "35px",
-
-          borderRadius:
-            "20px",
-
+          background: "white",
+          padding: "35px",
+          borderRadius: "20px",
           boxShadow:
             "0 10px 25px rgba(0,0,0,0.2)",
         }}
       >
 
         {/* IMAGE */}
-        <div
-          style={{
-            flex: 1,
-          }}
-        >
+        <div style={{ flex: 1 }}>
 
           <img
             src={product.image}
-
             alt={product.name}
-
             style={{
-              width:
-                "100%",
-
-              maxWidth:
-                "500px",
-
-              height:
-                "400px",
-
-              objectFit:
-                "cover",
-
-              borderRadius:
-                "18px",
+              width: "100%",
+              maxWidth: "500px",
+              height: "400px",
+              objectFit: "cover",
+              borderRadius: "18px",
             }}
           />
 
@@ -231,60 +226,34 @@ function ProductDetails() {
         <div
           style={{
             flex: 1,
-
-            minWidth:
-              "300px",
+            minWidth: "300px",
           }}
         >
 
-          {/* CATEGORY */}
           <span
             style={{
-              background:
-                "#667eea",
-
-              color:
-                "white",
-
-              padding:
-                "8px 16px",
-
-              borderRadius:
-                "20px",
-
-              fontSize:
-                "14px",
-
-              fontWeight:
-                "bold",
+              background: "#667eea",
+              color: "white",
+              padding: "8px 16px",
+              borderRadius: "20px",
+              fontSize: "14px",
+              fontWeight: "bold",
             }}
           >
             {product.category}
           </span>
 
-          {/* NAME */}
           <h1
             style={{
-              marginTop:
-                "20px",
-
-              fontSize:
-                "42px",
-
-              color:
-                "#1e3c72",
+              marginTop: "20px",
+              fontSize: "42px",
+              color: "#1e3c72",
             }}
           >
             {product.name}
           </h1>
 
-          {/* STOCK STATUS */}
-          <div
-            style={{
-              marginTop:
-                "15px",
-            }}
-          >
+          <div style={{ marginTop: "15px" }}>
 
             {
               product.available &&
@@ -292,20 +261,11 @@ function ProductDetails() {
 
                 <span
                   style={{
-                    background:
-                      "#10b981",
-
-                    color:
-                      "white",
-
-                    padding:
-                      "8px 16px",
-
-                    borderRadius:
-                      "20px",
-
-                    fontWeight:
-                      "bold",
+                    background: "#10b981",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    fontWeight: "bold",
                   }}
                 >
                   ✅ In Stock
@@ -315,20 +275,11 @@ function ProductDetails() {
 
                 <span
                   style={{
-                    background:
-                      "#ef4444",
-
-                    color:
-                      "white",
-
-                    padding:
-                      "8px 16px",
-
-                    borderRadius:
-                      "20px",
-
-                    fontWeight:
-                      "bold",
+                    background: "#ef4444",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    fontWeight: "bold",
                   }}
                 >
                   ❌ Out Of Stock
@@ -338,80 +289,45 @@ function ProductDetails() {
 
           </div>
 
-          {/* STOCK COUNT */}
           <h3
             style={{
-              marginTop:
-                "20px",
-
-              color:
-                "#444",
+              marginTop: "20px",
+              color: "#444",
             }}
           >
-            Available Units:
-            {" "}
-            {product.stock}
+            Available Units: {product.stock}
           </h3>
 
-          {/* PRICE */}
           <h2
             style={{
-              marginTop:
-                "20px",
-
-              color:
-                "#4CAF50",
-
-              fontSize:
-                "32px",
+              marginTop: "20px",
+              color: "#4CAF50",
+              fontSize: "32px",
             }}
           >
-            ₹
-            {product.pricePerMonth}
-            {" "}
-            / month
+            ₹{product.pricePerMonth} / month
           </h2>
 
-          {/* DEPOSIT */}
           <h3
             style={{
-              marginTop:
-                "10px",
-
-              color:
-                "#444",
+              marginTop: "10px",
+              color: "#444",
             }}
           >
-            Security Deposit:
-            {" "}
-            ₹
-            {product.deposit}
+            Security Deposit: ₹{product.deposit}
           </h3>
 
-          {/* DESCRIPTION */}
-          <div
-            style={{
-              marginTop:
-                "30px",
-            }}
-          >
+          <div style={{ marginTop: "30px" }}>
 
-            <h3>
-              Product Description
-            </h3>
+            <h3>Product Description</h3>
 
             <p
               style={{
-                lineHeight:
-                  "1.8",
-
-                color:
-                  "#555",
+                lineHeight: "1.8",
+                color: "#555",
               }}
             >
-              {
-                product.description
-              }
+              {product.description}
             </p>
 
           </div>
@@ -419,15 +335,9 @@ function ProductDetails() {
           {/* QUANTITY */}
           <div
             style={{
-              marginTop:
-                "30px",
-
-              display:
-                "flex",
-
-              alignItems:
-                "center",
-
+              marginTop: "30px",
+              display: "flex",
+              alignItems: "center",
               gap: "15px",
             }}
           >
@@ -435,25 +345,17 @@ function ProductDetails() {
             <button
               onClick={() =>
                 quantity > 1 &&
-                setQuantity(
-                  quantity - 1
-                )
+                setQuantity(quantity - 1)
               }
-
-              style={
-                styles.qtyButton
-              }
+              style={styles.qtyButton}
             >
               -
             </button>
 
             <span
               style={{
-                fontSize:
-                  "22px",
-
-                fontWeight:
-                  "bold",
+                fontSize: "22px",
+                fontWeight: "bold",
               }}
             >
               {quantity}
@@ -461,16 +363,10 @@ function ProductDetails() {
 
             <button
               onClick={() =>
-                quantity <
-                  product.stock &&
-                setQuantity(
-                  quantity + 1
-                )
+                quantity < product.stock &&
+                setQuantity(quantity + 1)
               }
-
-              style={
-                styles.qtyButton
-              }
+              style={styles.qtyButton}
             >
               +
             </button>
@@ -480,9 +376,7 @@ function ProductDetails() {
           {/* BUTTON */}
           <button
 
-            onClick={
-              addToCart
-            }
+            onClick={addToCart}
 
             disabled={
               !product.available ||
@@ -490,43 +384,23 @@ function ProductDetails() {
             }
 
             style={{
-              marginTop:
-                "35px",
-
+              marginTop: "35px",
               background:
                 product.available &&
                 product.stock > 0
-
                   ? "linear-gradient(135deg, #667eea, #764ba2)"
-
                   : "#9ca3af",
-
-              color:
-                "white",
-
-              border:
-                "none",
-
-              padding:
-                "16px 35px",
-
-              borderRadius:
-                "12px",
-
+              color: "white",
+              border: "none",
+              padding: "16px 35px",
+              borderRadius: "12px",
               cursor:
                 product.available &&
                 product.stock > 0
-
                   ? "pointer"
-
                   : "not-allowed",
-
-              fontWeight:
-                "bold",
-
-              fontSize:
-                "17px",
-
+              fontWeight: "bold",
+              fontSize: "17px",
               boxShadow:
                 "0 5px 15px rgba(0,0,0,0.2)",
             }}
@@ -535,9 +409,7 @@ function ProductDetails() {
             {
               product.available &&
               product.stock > 0
-
                 ? "Add To Cart"
-
                 : "Out Of Stock"
             }
 
@@ -562,13 +434,11 @@ const styles = {
 
     height: "40px",
 
-    borderRadius:
-      "50%",
+    borderRadius: "50%",
 
     border: "none",
 
-    background:
-      "#667eea",
+    background: "#667eea",
 
     color: "white",
 

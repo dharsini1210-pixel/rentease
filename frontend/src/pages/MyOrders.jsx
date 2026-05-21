@@ -64,7 +64,7 @@ function MyOrders() {
 
       const res = await axios.get(
 
-        "https://rentease-d1zx.onrender.com/api/orders/my-orders",
+        "http://localhost:5000/api/orders/my-orders",
 
         config
       );
@@ -99,7 +99,7 @@ function MyOrders() {
         const res =
           await axios.get(
 
-            "https://rentease-d1zx.onrender.com/api/maintenance/my-requests",
+            "http://localhost:5000/api/maintenance/my-requests",
 
             config
           );
@@ -174,7 +174,7 @@ function MyOrders() {
 
         await axios.post(
 
-          "https://rentease-d1zx.onrender.com/api/maintenance",
+          "http://localhost:5000/api/maintenance",
 
           {
             order:
@@ -228,7 +228,7 @@ function MyOrders() {
 
         await axios.put(
 
-          `https://rentease-d1zx.onrender.com/api/orders/${orderId}/request-pickup`,
+          `http://localhost:5000/api/orders/${orderId}/request-pickup`,
 
           {
             pickupStatus:

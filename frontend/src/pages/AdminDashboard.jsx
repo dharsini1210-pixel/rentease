@@ -69,7 +69,7 @@ function AdminDashboard() {
       // =========================
       const res = await axios.get(
 
-        "https://rentease-d1zx.onrender.com/api/admin/dashboard-stats",
+        "http://localhost:5000/api/admin/dashboard-stats",
 
         config
       );
@@ -79,7 +79,7 @@ function AdminDashboard() {
       // =========================
       const orderRes = await axios.get(
 
-        "https://rentease-d1zx.onrender.com/api/orders",
+        "http://localhost:5000/api/orders",
 
         config
       );

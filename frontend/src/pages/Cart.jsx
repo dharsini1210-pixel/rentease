@@ -47,7 +47,7 @@ function Cart() {
         const res =
           await axios.get(
 
-            "https://rentease-d1zx.onrender.com/api/cart",
+            "http://localhost:5000/api/cart",
 
             {
               headers: {
@@ -83,7 +83,7 @@ function Cart() {
 
         await axios.post(
 
-          "https://rentease-d1zx.onrender.com/api/cart",
+          "http://localhost:5000/api/cart",
 
           {
             productId,
@@ -120,7 +120,7 @@ function Cart() {
 
         await axios.delete(
 
-          `https://rentease-d1zx.onrender.com/api/cart/${cartId}`,
+          `http://localhost:5000/api/cart/${cartId}`,
 
           {
             headers: {
@@ -156,7 +156,7 @@ function Cart() {
 
           await axios.delete(
 
-            `https://rentease-d1zx.onrender.com/api/cart/${item._id}`,
+            `http://localhost:5000/api/cart/${item._id}`,
 
             {
               headers: {

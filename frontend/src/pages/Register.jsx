@@ -34,7 +34,7 @@ const Register = () => {
         const res =
           await axios.post(
 
-            "https://rentease-d1zx.onrender.com/api/users/register",
+            "http://localhost:5000/api/users/register",
 
             {
               name,

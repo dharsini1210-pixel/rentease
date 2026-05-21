@@ -47,7 +47,7 @@ function AdminOrders() {
         const res =
           await axios.get(
 
-            "https://rentease-d1zx.onrender.com/api/orders",
+            "http://localhost:5000/api/orders",
 
             config
           );

@@ -71,7 +71,7 @@ function EditProduct() {
         const res =
           await axios.get(
 
-            `https://rentease-d1zx.onrender.com/api/products/${id}`
+            `http://localhost:5000/api/products/${id}`
           );
 
         const product =
@@ -136,7 +136,7 @@ function EditProduct() {
 
         await axios.put(
 
-          `https://rentease-d1zx.onrender.com/api/products/${id}`,
+          `http://localhost:5000/api/products/${id}`,
 
           {
             name,

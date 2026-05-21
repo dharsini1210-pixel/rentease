@@ -33,7 +33,7 @@ function ProductDetails() {
       setLoading(true);
 
       const res = await axios.get(
-        `https://rentease-d1zx.onrender.com/api/products/${id}`
+        `http://localhost:5000/api/products/${id}`
       );
 
       setProduct(res.data);
@@ -90,7 +90,7 @@ function ProductDetails() {
 
       await axios.post(
 
-        "https://rentease-d1zx.onrender.com/api/cart",
+        "http://localhost:5000/api/cart",
 
         {
           productId: product._id,

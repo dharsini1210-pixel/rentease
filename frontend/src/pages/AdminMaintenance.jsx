@@ -46,7 +46,7 @@ function AdminMaintenance() {
         const res =
           await axios.get(
 
-            "https://rentease-d1zx.onrender.com/api/maintenance",
+            "http://localhost:5000/api/maintenance",
 
             config
           );
@@ -87,7 +87,7 @@ function AdminMaintenance() {
 
         await axios.put(
 
-          `https://rentease-d1zx.onrender.com/api/maintenance/${id}`,
+          `http://localhost:5000/api/maintenance/${id}`,
 
           {
             status,

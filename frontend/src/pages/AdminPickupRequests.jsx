@@ -47,7 +47,7 @@ function AdminPickupRequests() {
         const { data } =
           await axios.get(
 
-            "https://rentease-d1zx.onrender.com/api/orders",
+            "http://localhost:5000/api/orders",
 
             config
           );
@@ -94,7 +94,7 @@ function AdminPickupRequests() {
 
         await axios.put(
 
-          `https://rentease-d1zx.onrender.com/api/orders/${order._id}/pickup-status`,
+          `http://localhost:5000/api/orders/${order._id}/pickup-status`,
 
           {
             pickupStatus:
@@ -147,7 +147,7 @@ function AdminPickupRequests() {
 
         await axios.put(
 
-          `https://rentease-d1zx.onrender.com/api/orders/${id}/pickup-status`,
+          `http://localhost:5000/api/orders/${id}/pickup-status`,
 
           {
             pickupStatus:

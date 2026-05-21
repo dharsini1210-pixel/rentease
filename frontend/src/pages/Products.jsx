@@ -245,12 +245,45 @@ function Products() {
       {/* PRODUCTS GRID */}
       <div style={styles.grid}>
 
+        {/* EMPTY PRODUCTS */}
+        {filteredProducts.length === 0 && (
+
+          <h2
+            style={{
+              textAlign: "center",
+              width: "100%",
+              color: "#64748b",
+            }}
+          >
+            No products found 😔
+          </h2>
+        )}
+
         {filteredProducts.map(
           (product) => (
 
             <div
               key={product._id}
+
               style={styles.card}
+
+              onMouseEnter={(e) => {
+
+                e.currentTarget.style.transform =
+                  "translateY(-8px)";
+
+                e.currentTarget.style.boxShadow =
+                  "0 20px 40px rgba(0,0,0,0.15)";
+              }}
+
+              onMouseLeave={(e) => {
+
+                e.currentTarget.style.transform =
+                  "translateY(0px)";
+
+                e.currentTarget.style.boxShadow =
+                  "0 10px 30px rgba(0,0,0,0.08)";
+              }}
             >
 
               {/* IMAGE */}
@@ -364,6 +397,14 @@ function Products() {
                     style={
                       styles.button
                     }
+
+                    onMouseEnter={(e) => {
+                      e.target.style.opacity = "0.9";
+                    }}
+
+                    onMouseLeave={(e) => {
+                      e.target.style.opacity = "1";
+                    }}
                   >
                     View Details
                   </button>
@@ -517,6 +558,9 @@ const styles = {
 
     cursor:
       "pointer",
+
+    transform:
+      "translateY(0px)",
   },
 
   imageContainer: {
@@ -643,6 +687,9 @@ const styles = {
 
     fontSize:
       "16px",
+
+    transition:
+      "0.3s",
   },
 };
 

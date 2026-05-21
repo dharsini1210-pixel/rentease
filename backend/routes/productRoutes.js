@@ -18,17 +18,21 @@ const {
   "../controllers/productController"
 );
 
+// =========================
 // GET ALL PRODUCTS
 // ADD PRODUCT
+// =========================
 router.route("/")
 
   .get(getProducts)
 
   .post(addProduct);
 
+// =========================
 // GET SINGLE PRODUCT
 // UPDATE PRODUCT
 // DELETE PRODUCT
+// =========================
 router.route("/:id")
 
   .get(getSingleProduct)

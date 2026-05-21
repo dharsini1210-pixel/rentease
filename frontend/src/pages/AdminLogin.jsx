@@ -43,7 +43,7 @@ function AdminLogin() {
         const res =
           await axios.post(
 
-            "http://localhost:5000/api/users/login",
+            "https://rentease-d1zx.onrender.com/api/users/login",
 
             {
               email,

@@ -1,6 +1,4 @@
-import {
-  useState,
-} from "react";
+import { useState } from "react";
 
 import {
   useNavigate,
@@ -9,10 +7,11 @@ import {
 
 import axios from "axios";
 
+import { toast } from "react-toastify";
+
 function Login() {
 
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
   const [email, setEmail] =
     useState("");
@@ -20,9 +19,7 @@ function Login() {
   const [password, setPassword] =
     useState("");
 
-  // =========================
   // LOGIN FUNCTION
-  // =========================
   const handleLogin =
     async (e) => {
 
@@ -32,66 +29,44 @@ function Login() {
 
         const res =
           await axios.post(
-
-            "http://localhost:5000/api/users/login",
-
+            "https://rentease-d1zx.onrender.com/api/users/login",
             {
               email,
               password,
             }
           );
 
-        const data =
-          res.data;
+        const data = res.data;
 
-        console.log(data);
-
-        // =========================
         // BLOCK ADMINS
-        // =========================
-        if (
-          data.role === "admin"
-        ) {
+        if (data.role === "admin") {
 
-          alert(
+          toast.warning(
             "Admins must login from Admin Login page"
           );
 
           return;
         }
 
-        // =========================
-        // REMOVE ADMIN SESSION
-        // =========================
         localStorage.removeItem(
           "adminInfo"
         );
 
-        // =========================
-        // SAVE USER INFO
-        // =========================
         localStorage.setItem(
-
           "userInfo",
-
           JSON.stringify(data)
         );
 
-        alert(
-          "Login Successful"
+        toast.success(
+          "Login Successful 🎉"
         );
 
         navigate("/");
 
       } catch (error) {
 
-        console.log(error);
-
-        alert(
-
-          error.response?.data
-            ?.message ||
-
+        toast.error(
+          error.response?.data?.message ||
           "Login Failed"
         );
       }
@@ -99,90 +74,98 @@ function Login() {
 
   return (
 
-    <div
-      style={styles.container}
-    >
+    <div style={styles.container}>
 
-      <form
-        style={styles.card}
+      {/* LEFT SIDE */}
+      <div style={styles.leftSection}>
 
-        onSubmit={
-          handleLogin
-        }
-      >
+        <h1 style={styles.brand}>
+          RentEase
+        </h1>
 
-        <h2>
-          User Login
-        </h2>
-
-        <p>
-          Welcome Back 👋
+        <p style={styles.tagline}>
+          Smart Furniture &
+          Appliance Rentals
         </p>
 
-        {/* EMAIL */}
-        <input
-          type="email"
+        <div style={styles.featureBox}>
+          <h3>
+            Why Choose RentEase?
+          </h3>
 
-          placeholder="Email"
+          <ul style={styles.list}>
+            <li>✔ Affordable monthly rentals</li>
+            <li>✔ Premium furniture collection</li>
+            <li>✔ Easy online booking</li>
+            <li>✔ Fast delivery & support</li>
+          </ul>
+        </div>
 
-          value={email}
+      </div>
 
-          onChange={(e) =>
-            setEmail(
-              e.target.value
-            )
-          }
+      {/* RIGHT SIDE */}
+      <div style={styles.rightSection}>
 
-          required
-
-          style={styles.input}
-        />
-
-        {/* PASSWORD */}
-        <input
-          type="password"
-
-          placeholder="Password"
-
-          value={password}
-
-          onChange={(e) =>
-            setPassword(
-              e.target.value
-            )
-          }
-
-          required
-
-          style={styles.input}
-        />
-
-        {/* BUTTON */}
-        <button
-          type="submit"
-
-          style={styles.button}
+        <form
+          style={styles.card}
+          onSubmit={handleLogin}
         >
-          Login
-        </button>
 
-        <p
-          style={{
-            marginTop: "15px",
-          }}
-        >
-          Don’t have an account?{" "}
+          <h2 style={styles.title}>
+            Welcome Back
+          </h2>
 
-          <Link
-            to="/register"
+          <p style={styles.subtitle}>
+            Login to continue
+          </p>
 
-            style={styles.link}
+          {/* EMAIL */}
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
+            required
+            style={styles.input}
+          />
+
+          {/* PASSWORD */}
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
+            required
+            style={styles.input}
+          />
+
+          {/* BUTTON */}
+          <button
+            type="submit"
+            style={styles.button}
           >
-            Register
-          </Link>
-        </p>
+            Login
+          </button>
 
-      </form>
+          {/* REGISTER */}
+          <p style={styles.registerText}>
+            Don’t have an account?{" "}
+
+            <Link
+              to="/register"
+              style={styles.link}
+            >
+              Register
+            </Link>
+          </p>
+
+        </form>
+
+      </div>
 
     </div>
   );
@@ -191,86 +174,186 @@ function Login() {
 // =========================
 // STYLES
 // =========================
+
 const styles = {
 
   container: {
 
-    height: "100vh",
-
-    background:
-      "linear-gradient(135deg, #1e3c72, #2a5298)",
-
     display: "flex",
 
-    justifyContent:
-      "center",
+    height: "100vh",
 
-    alignItems:
-      "center",
+    fontFamily:
+      "'Segoe UI', sans-serif",
   },
 
-  card: {
+  // LEFT SECTION
+
+  leftSection: {
+
+    flex: 1,
 
     background:
-      "rgba(255,255,255,0.1)",
-
-    backdropFilter:
-      "blur(10px)",
-
-    padding: "40px",
-
-    borderRadius: "15px",
+      "linear-gradient(135deg, #0f172a, #1e293b)",
 
     color: "#fff",
 
-    width: "320px",
+    display: "flex",
 
-    textAlign: "center",
+    flexDirection: "column",
+
+    justifyContent: "center",
+
+    padding: "80px",
+  },
+
+  brand: {
+
+    fontSize: "56px",
+
+    fontWeight: "bold",
+
+    marginBottom: "10px",
+  },
+
+  tagline: {
+
+    fontSize: "20px",
+
+    color: "#cbd5e1",
+
+    marginBottom: "40px",
+  },
+
+  featureBox: {
+
+    background:
+      "rgba(255,255,255,0.08)",
+
+    padding: "25px",
+
+    borderRadius: "16px",
+
+    width: "80%",
+  },
+
+  list: {
+
+    marginTop: "15px",
+
+    lineHeight: "2",
+
+    color: "#e2e8f0",
+  },
+
+  // RIGHT SECTION
+
+  rightSection: {
+
+    flex: 1,
+
+    display: "flex",
+
+    justifyContent: "center",
+
+    alignItems: "center",
+
+    background: "#f8fafc",
+  },
+
+  // CARD
+
+  card: {
+
+    width: "380px",
+
+    background: "#fff",
+
+    padding: "45px",
+
+    borderRadius: "20px",
 
     boxShadow:
-      "0 10px 25px rgba(0,0,0,0.3)",
+      "0 10px 30px rgba(0,0,0,0.08)",
   },
+
+  title: {
+
+    fontSize: "32px",
+
+    marginBottom: "10px",
+
+    color: "#0f172a",
+  },
+
+  subtitle: {
+
+    color: "#64748b",
+
+    marginBottom: "30px",
+  },
+
+  // INPUTS
 
   input: {
 
     width: "100%",
 
-    padding: "12px",
+    padding: "14px",
 
-    margin: "10px 0",
+    marginBottom: "18px",
 
-    borderRadius: "8px",
+    borderRadius: "10px",
 
-    border: "none",
+    border: "1px solid #cbd5e1",
+
+    fontSize: "15px",
 
     outline: "none",
+
+    background: "#fff",
   },
+
+  // BUTTON
 
   button: {
 
     width: "100%",
 
-    padding: "12px",
+    padding: "14px",
 
     background:
-      "linear-gradient(135deg, #667eea, #764ba2)",
+      "linear-gradient(135deg, #2563eb, #4f46e5)",
 
     color: "#fff",
 
     border: "none",
 
-    borderRadius: "8px",
+    borderRadius: "10px",
 
-    cursor: "pointer",
+    fontSize: "16px",
 
     fontWeight: "bold",
 
-    fontSize: "15px",
+    cursor: "pointer",
+
+    marginTop: "10px",
+  },
+
+  // REGISTER
+
+  registerText: {
+
+    marginTop: "20px",
+
+    textAlign: "center",
+
+    color: "#64748b",
   },
 
   link: {
 
-    color: "#a5b4fc",
+    color: "#2563eb",
 
     textDecoration: "none",
 

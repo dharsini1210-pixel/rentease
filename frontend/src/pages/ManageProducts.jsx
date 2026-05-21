@@ -35,7 +35,7 @@ function ManageProducts() {
 
         const res =
           await axios.get(
-            "http://localhost:5000/api/products"
+            "https://rentease-d1zx.onrender.com/api/products"
           );
 
         setProducts(
@@ -79,7 +79,7 @@ function ManageProducts() {
 
         await axios.delete(
 
-          `http://localhost:5000/api/products/${id}`,
+          `https://rentease-d1zx.onrender.com/api/products/${id}`,
 
           config
         );

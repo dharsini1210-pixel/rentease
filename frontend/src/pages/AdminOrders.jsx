@@ -110,7 +110,7 @@ function AdminOrders() {
     };
 
   // =========================
-  // DOWNLOAD INVOICE
+  // PROFESSIONAL INVOICE
   // =========================
   const downloadInvoice =
     (order) => {
@@ -118,10 +118,11 @@ function AdminOrders() {
       const doc =
         new jsPDF();
 
+      // HEADER
       doc.setFillColor(
-        37,
-        99,
-        235
+        30,
+        60,
+        114
       );
 
       doc.rect(
@@ -132,6 +133,7 @@ function AdminOrders() {
         "F"
       );
 
+      // COMPANY NAME
       doc.setTextColor(
         255,
         255,
@@ -143,38 +145,73 @@ function AdminOrders() {
       doc.text(
         "RentEase",
         20,
-        22
+        20
       );
 
+      // SUBTITLE
       doc.setFontSize(12);
 
       doc.text(
-        "Furniture & Appliance Rental Platform",
+        "Rental Platform Invoice",
         20,
-        32
+        30
       );
 
+      // INVOICE TITLE
+      doc.setFontSize(24);
+
+      doc.text(
+        "INVOICE",
+        145,
+        18
+      );
+
+      // INVOICE DETAILS
+      doc.setFontSize(11);
+
+      doc.text(
+        `Invoice ID: ${order._id
+          .slice(-6)
+          .toUpperCase()}`,
+        130,
+        28
+      );
+
+      doc.text(
+        `Date: ${new Date()
+          .toLocaleDateString()}`,
+        130,
+        35
+      );
+
+      // RESET TEXT COLOR
       doc.setTextColor(
         0,
         0,
         0
       );
 
-      doc.setFontSize(22);
-
-      doc.text(
-        "INVOICE",
-        155,
-        25
+      // CUSTOMER DETAILS
+      doc.setFillColor(
+        240,
+        240,
+        240
       );
 
-      // CUSTOMER
-      doc.setFontSize(15);
+      doc.rect(
+        15,
+        55,
+        180,
+        40,
+        "F"
+      );
+
+      doc.setFontSize(16);
 
       doc.text(
         "Customer Details",
         20,
-        55
+        68
       );
 
       doc.setFontSize(12);
@@ -182,42 +219,50 @@ function AdminOrders() {
       doc.text(
         `Customer: ${order.user?.name}`,
         20,
-        65
+        78
       );
 
       doc.text(
         `Email: ${order.user?.email}`,
         20,
-        75
+        86
       );
 
       doc.text(
         `Address: ${order.address}`,
         20,
-        85
+        94
       );
 
       // ORDER DETAILS
-      doc.setFontSize(15);
+      doc.setFillColor(
+        245,
+        245,
+        255
+      );
+
+      doc.rect(
+        15,
+        108,
+        180,
+        55,
+        "F"
+      );
+
+      doc.setFontSize(16);
 
       doc.text(
         "Order Details",
         20,
-        105
+        120
       );
 
       doc.setFontSize(12);
 
       doc.text(
-        `Order ID: ${order._id}`,
+        `Rental Duration: ${order.rentalDuration} Months`,
         20,
-        115
-      );
-
-      doc.text(
-        `Payment Status: ${order.paymentStatus}`,
-        20,
-        125
+        132
       );
 
       doc.text(
@@ -225,20 +270,44 @@ function AdminOrders() {
           order.deliveryDate
         ).toLocaleDateString()}`,
         20,
-        135
+        140
       );
 
-      // TABLE
+      doc.text(
+        `Delivery Slot: ${order.deliverySlot}`,
+        20,
+        148
+      );
+
+      doc.text(
+        `Order Status: ${order.status}`,
+        110,
+        132
+      );
+
+      doc.text(
+        `Payment Status: ${order.paymentStatus}`,
+        110,
+        140
+      );
+
+      doc.text(
+        `Pickup Status: ${order.pickupStatus}`,
+        110,
+        148
+      );
+
+      // PRODUCTS TABLE HEADER
       doc.setFillColor(
-        37,
-        99,
-        235
+        30,
+        60,
+        114
       );
 
       doc.rect(
-        20,
-        150,
-        170,
+        15,
+        175,
+        180,
         10,
         "F"
       );
@@ -249,45 +318,59 @@ function AdminOrders() {
         255
       );
 
+      doc.setFontSize(12);
+
       doc.text(
         "Product",
-        25,
-        157
+        20,
+        182
       );
 
       doc.text(
         "Qty",
         105,
-        157
+        182
       );
 
       doc.text(
         "Rent",
         130,
-        157
+        182
       );
 
       doc.text(
-        "Deposit",
+        "Subtotal",
         165,
-        157
+        182
       );
 
-      let y = 170;
-
+      // PRODUCTS
       doc.setTextColor(
         0,
         0,
         0
       );
 
+      let y = 198;
+
       order.items.forEach(
         (item) => {
+
+          const subtotal =
+
+            (item.product
+              ?.pricePerMonth ||
+
+              item.pricePerMonth ||
+
+              0) *
+
+            item.quantity;
 
           doc.text(
             item.product?.name ||
             item.name,
-            25,
+            20,
             y
           );
 
@@ -300,21 +383,19 @@ function AdminOrders() {
           );
 
           doc.text(
-            `₹${
-              item.product
-                ?.pricePerMonth ||
-              item.pricePerMonth
-            }`,
+            `₹${item.product
+              ?.pricePerMonth ||
+
+              item.pricePerMonth ||
+
+              0}`,
             128,
             y
           );
 
           doc.text(
-            `₹${
-              item.product
-                ?.deposit || 0
-            }`,
-            165,
+            `₹${subtotal}`,
+            163,
             y
           );
 
@@ -322,18 +403,73 @@ function AdminOrders() {
         }
       );
 
-      y += 15;
+      // PAYMENT SUMMARY
+      y += 10;
 
-      doc.setFontSize(18);
-
-      doc.text(
-        `Total Amount: ₹${order.totalAmount}`,
-        20,
-        y
+      doc.setFillColor(
+        30,
+        60,
+        114
       );
 
+      doc.rect(
+        95,
+        y,
+        100,
+        40,
+        "F"
+      );
+
+      doc.setTextColor(
+        255,
+        255,
+        255
+      );
+
+      doc.setFontSize(12);
+
+      doc.text(
+        `Monthly Rent : ₹${order.totalAmount - order.deposit}`,
+        102,
+        y + 10
+      );
+
+      doc.text(
+        `Deposit : ₹${order.deposit}`,
+        102,
+        y + 22
+      );
+
+      doc.setFontSize(16);
+
+      doc.text(
+        `Grand Total : ₹${order.totalAmount}`,
+        102,
+        y + 35
+      );
+
+      // FOOTER
+      doc.setTextColor(
+        120
+      );
+
+      doc.setFontSize(11);
+
+      doc.text(
+        "Thank you for choosing RentEase ❤️",
+        20,
+        280
+      );
+
+      doc.text(
+        "For support contact: rentease22@gmail.com",
+        20,
+        287
+      );
+
+      // SAVE PDF
       doc.save(
-        `RentEase-Invoice-${order._id}.pdf`
+        `RentEase_Invoice_${order._id}.pdf`
       );
     };
 
@@ -431,7 +567,6 @@ function AdminOrders() {
                   }}
                 >
 
-                  {/* ORDER STATUS */}
                   <div
                     style={{
                       ...styles.statusBadge,
@@ -448,7 +583,6 @@ function AdminOrders() {
                     }
                   </div>
 
-                  {/* PAYMENT STATUS */}
                   <div
                     style={{
                       ...styles.statusBadge,
@@ -543,10 +677,37 @@ function AdminOrders() {
                 >
 
                   <h3>
-                    💰 Total Amount
+                    💰 Payment Summary
                   </h3>
 
                   <p>
+                    Monthly Rent:
+                    {" "}
+                    ₹
+                    {
+                      order.totalAmount -
+                      order.deposit
+                    }
+                  </p>
+
+                  <p>
+                    Deposit:
+                    {" "}
+                    ₹
+                    {
+                      order.deposit
+                    }
+                  </p>
+
+                  <p
+                    style={{
+                      marginTop: "10px",
+                      fontWeight: "bold",
+                      color: "#1e3a8a",
+                    }}
+                  >
+                    Grand Total:
+                    {" "}
                     ₹
                     {
                       order.totalAmount
@@ -589,6 +750,66 @@ function AdminOrders() {
                     {
                       order.deliverySlot
                     }
+                  </p>
+
+                </div>
+
+                {/* PICKUP STATUS */}
+                <div
+                  style={{
+                    ...styles.infoBox,
+
+                    background:
+
+                      order.pickupStatus ===
+                      "Requested"
+
+                        ? "#fff7ed"
+
+                        : "#f8fafc",
+
+                    border:
+
+                      order.pickupStatus ===
+                      "Requested"
+
+                        ? "2px solid #f97316"
+
+                        : "none",
+                  }}
+                >
+
+                  <h3>
+                    📦 Pickup Status
+                  </h3>
+
+                  <p
+                    style={{
+                      fontWeight: "bold",
+
+                      color:
+
+                        order.pickupStatus ===
+                        "Requested"
+
+                          ? "#ea580c"
+
+                          : "#334155",
+                    }}
+                  >
+
+                    {order.pickupStatus ===
+                    "Requested"
+
+                      ? "🟡 Pickup Requested"
+
+                      : order.pickupStatus ===
+                        "Picked Up"
+
+                      ? "🟢 Picked Up"
+
+                      : "⚪ Not Scheduled"}
+
                   </p>
 
                 </div>

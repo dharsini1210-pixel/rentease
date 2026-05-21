@@ -24,17 +24,6 @@ function ManageOrderDetails() {
     setDeliveryStatus
   ] = useState("Scheduled");
 
-  const [
-    pickupStatus,
-    setPickupStatus
-  ] = useState("Not Scheduled");
-
-  const [pickupDate, setPickupDate] =
-    useState("");
-
-  const [pickupSlot, setPickupSlot] =
-    useState("");
-
   const adminInfo = JSON.parse(
     localStorage.getItem("adminInfo")
   );
@@ -63,7 +52,7 @@ function ManageOrderDetails() {
 
       const res = await axios.get(
 
-        "http://localhost:5000/api/orders",
+        "https://rentease-d1zx.onrender.com/api/orders",
 
         config
       );
@@ -82,19 +71,6 @@ function ManageOrderDetails() {
         setDeliveryStatus(
           order.deliveryStatus ||
           "Scheduled"
-        );
-
-        setPickupStatus(
-          order.pickupStatus ||
-          "Not Scheduled"
-        );
-
-        setPickupDate(
-          order.pickupDate || ""
-        );
-
-        setPickupSlot(
-          order.pickupSlot || ""
         );
       }
 
@@ -123,7 +99,7 @@ function ManageOrderDetails() {
       // UPDATE ORDER STATUS
       await axios.put(
 
-        `http://localhost:5000/api/orders/${id}/status`,
+        `https://rentease-d1zx.onrender.com/api/orders/${id}/status`,
 
         {
           status: orderStatus,
@@ -135,24 +111,10 @@ function ManageOrderDetails() {
       // UPDATE DELIVERY STATUS
       await axios.put(
 
-        `http://localhost:5000/api/orders/${id}/delivery-status`,
+        `https://rentease-d1zx.onrender.com/api/orders/${id}/delivery-status`,
 
         {
           deliveryStatus,
-        },
-
-        config
-      );
-
-      // UPDATE PICKUP STATUS
-      await axios.put(
-
-        `http://localhost:5000/api/orders/${id}/pickup-status`,
-
-        {
-          pickupStatus,
-          pickupDate,
-          pickupSlot,
         },
 
         config
@@ -261,100 +223,6 @@ function ManageOrderDetails() {
 
           </div>
 
-          {/* PICKUP STATUS */}
-          <div style={styles.section}>
-
-            <h3 style={styles.label}>
-              Pickup Status
-            </h3>
-
-            <select
-
-              value={pickupStatus}
-
-              onChange={(e) =>
-                setPickupStatus(
-                  e.target.value
-                )
-              }
-
-              style={styles.select}
-            >
-
-              <option>
-                Not Scheduled
-              </option>
-
-              <option>
-                Pickup Scheduled
-              </option>
-
-              <option>
-                Picked Up
-              </option>
-
-            </select>
-
-          </div>
-
-          {/* PICKUP DATE */}
-          <div style={styles.section}>
-
-            <h3 style={styles.label}>
-              Pickup Date
-            </h3>
-
-            <input
-
-              type="date"
-
-              value={pickupDate}
-
-              onChange={(e) =>
-                setPickupDate(
-                  e.target.value
-                )
-              }
-
-              style={styles.input}
-            />
-
-          </div>
-
-          {/* PICKUP SLOT */}
-          <div style={styles.section}>
-
-            <h3 style={styles.label}>
-              Pickup Slot
-            </h3>
-
-            <select
-
-              value={pickupSlot}
-
-              onChange={(e) =>
-                setPickupSlot(
-                  e.target.value
-                )
-              }
-
-              style={styles.select}
-            >
-
-              <option value="">
-                Select Slot
-              </option>
-
-              <option>Morning</option>
-
-              <option>Afternoon</option>
-
-              <option>Evening</option>
-
-            </select>
-
-          </div>
-
           {/* SAVE BUTTON */}
           <button
 
@@ -444,23 +312,6 @@ const styles = {
   },
 
   select: {
-
-    width: "100%",
-
-    padding: "16px",
-
-    borderRadius: "12px",
-
-    border: "1px solid #cbd5e1",
-
-    fontSize: "16px",
-
-    marginTop: "10px",
-
-    outline: "none",
-  },
-
-  input: {
 
     width: "100%",
 

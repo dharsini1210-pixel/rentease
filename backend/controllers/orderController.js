@@ -4,6 +4,26 @@ const Cart = require("../models/Cart");
 
 const Product = require("../models/Product");
 
+const nodemailer = require("nodemailer");
+
+// =========================
+// EMAIL TRANSPORTER
+// =========================
+const transporter =
+  nodemailer.createTransport({
+
+    service: "gmail",
+
+    auth: {
+
+      user:
+        process.env.EMAIL_USER,
+
+      pass:
+        process.env.EMAIL_PASS,
+    },
+  });
+
 // =========================
 // PLACE ORDER
 // =========================
@@ -11,28 +31,42 @@ const placeOrder = async (req, res) => {
 
   try {
 
-    console.log("PLACE ORDER API HIT");
+    console.log(
+      "PLACE ORDER API HIT"
+    );
 
     console.log(req.body);
 
     const {
+
       address,
+
       rentalDuration,
+
       deliveryDate,
+
       deliverySlot,
+
       totalAmount,
-      items
+
+      paymentStatus,
+
+      items,
+
     } = req.body;
 
     // =========================
     // CHECK EMPTY ITEMS
     // =========================
-    if (!items || items.length === 0) {
+    if (
+      !items ||
+      items.length === 0
+    ) {
 
       return res.status(400).json({
 
         message:
-          "No order items"
+          "No order items",
       });
     }
 
@@ -51,26 +85,32 @@ const placeOrder = async (req, res) => {
         return res.status(404).json({
 
           message:
-            `${item.name} not found`
+            `${item.name} not found`,
         });
       }
 
       // OUT OF STOCK
-      if (product.stock <= 0) {
+      if (
+        product.stock <= 0
+      ) {
 
         return res.status(400).json({
 
           message:
-            `${product.name} is Out Of Stock`
+            `${product.name} is Out Of Stock`,
         });
       }
 
       // REDUCE STOCK
       product.stock =
-        product.stock - item.quantity;
+
+        product.stock -
+        item.quantity;
 
       // AUTO UNAVAILABLE
-      if (product.stock <= 0) {
+      if (
+        product.stock <= 0
+      ) {
 
         product.available =
           false;
@@ -97,6 +137,7 @@ const placeOrder = async (req, res) => {
           item.price || 0,
 
         pricePerMonth:
+
           item.pricePerMonth ||
 
           item.rent ||
@@ -117,7 +158,7 @@ const placeOrder = async (req, res) => {
           item.quantity || 1,
 
         product:
-          item.product
+          item.product,
       }));
 
     // =========================
@@ -142,6 +183,12 @@ const placeOrder = async (req, res) => {
 
         address,
 
+        paymentStatus:
+
+          paymentStatus ||
+
+          "Pending",
+
         status:
           "Placed",
 
@@ -149,7 +196,7 @@ const placeOrder = async (req, res) => {
           "Scheduled",
 
         pickupStatus:
-          "Not Scheduled"
+          "Not Scheduled",
       });
 
     // =========================
@@ -158,8 +205,101 @@ const placeOrder = async (req, res) => {
     await Cart.deleteMany({
 
       user:
-        req.user.id
+        req.user.id,
     });
+
+    // =========================
+    // SEND EMAIL
+    // =========================
+    try {
+
+      const productNames =
+        formattedItems
+
+          .map(
+            (item) =>
+              item.name
+          )
+
+          .join(", ");
+
+      await transporter.sendMail({
+
+        from:
+          process.env.EMAIL_USER,
+
+        to:
+          req.user.email,
+
+        subject:
+          "RentEase Order Confirmation",
+
+        html: `
+
+          <div style="font-family: Arial; padding: 20px;">
+
+            <h1 style="color:#1e3c72;">
+              RentEase Order Confirmed 🎉
+            </h1>
+
+            <p>
+              Hello ${req.user.name},
+            </p>
+
+            <p>
+              Your rental order has been placed successfully.
+            </p>
+
+            <h3>
+              Order Details
+            </h3>
+
+            <ul>
+              <li>
+                <strong>Products:</strong>
+                ${productNames}
+              </li>
+
+              <li>
+                <strong>Total Amount:</strong>
+                ₹${totalAmount}
+              </li>
+
+              <li>
+                <strong>Payment Status:</strong>
+                ${paymentStatus}
+              </li>
+
+              <li>
+                <strong>Delivery Slot:</strong>
+                ${deliverySlot}
+              </li>
+
+              <li>
+                <strong>Address:</strong>
+                ${address}
+              </li>
+            </ul>
+
+            <p>
+              Thank you for choosing RentEase ❤️
+            </p>
+
+          </div>
+        `,
+      });
+
+      console.log(
+        "EMAIL SENT SUCCESSFULLY"
+      );
+
+    } catch (emailError) {
+
+      console.log(
+        "EMAIL ERROR:",
+        emailError
+      );
+    }
 
     // =========================
     // SUCCESS
@@ -169,20 +309,22 @@ const placeOrder = async (req, res) => {
       message:
         "Order placed successfully",
 
-      order
+      order,
     });
 
   } catch (error) {
 
     console.log(
+
       "PLACE ORDER ERROR:",
+
       error
     );
 
     res.status(500).json({
 
       message:
-        error.message
+        error.message,
     });
   }
 };
@@ -199,8 +341,7 @@ const getMyOrders =
         await Order.find({
 
           user:
-            req.user.id
-
+            req.user.id,
         })
 
           .populate({
@@ -214,7 +355,7 @@ const getMyOrders =
 
           .sort({
 
-            createdAt: -1
+            createdAt: -1,
           });
 
       res.json(orders);
@@ -222,14 +363,16 @@ const getMyOrders =
     } catch (error) {
 
       console.log(
+
         "GET MY ORDERS ERROR:",
+
         error
       );
 
       res.status(500).json({
 
         message:
-          error.message
+          error.message,
       });
     }
   };
@@ -261,7 +404,7 @@ const getAllOrders =
 
           .sort({
 
-            createdAt: -1
+            createdAt: -1,
           });
 
       res.json(orders);
@@ -269,14 +412,16 @@ const getAllOrders =
     } catch (error) {
 
       console.log(
+
         "GET ALL ORDERS ERROR:",
+
         error
       );
 
       res.status(500).json({
 
         message:
-          error.message
+          error.message,
       });
     }
   };
@@ -299,7 +444,7 @@ const updateOrderStatus =
         return res.status(404).json({
 
           message:
-            "Order not found"
+            "Order not found",
         });
       }
 
@@ -318,7 +463,7 @@ const updateOrderStatus =
       res.status(500).json({
 
         message:
-          error.message
+          error.message,
       });
     }
   };
@@ -341,7 +486,7 @@ const updateDeliveryStatus =
         return res.status(404).json({
 
           message:
-            "Order not found"
+            "Order not found",
         });
       }
 
@@ -360,7 +505,7 @@ const updateDeliveryStatus =
       res.status(500).json({
 
         message:
-          error.message
+          error.message,
       });
     }
   };
@@ -378,12 +523,65 @@ const requestPickup =
           req.params.id
         );
 
+      if (!order) {// =========================
+// REQUEST PICKUP
+// =========================
+const requestPickup =
+  async (req, res) => {
+
+    try {
+
+      const order =
+        await Order.findById(
+          req.params.id
+        );
+
       if (!order) {
 
         return res.status(404).json({
 
           message:
-            "Order not found"
+            "Order not found",
+        });
+      }
+
+      // USER REQUESTS PICKUP
+      order.pickupStatus =
+        "Requested";
+
+      const updatedOrder =
+        await order.save();
+
+      res.json({
+
+        success: true,
+
+        message:
+          "Pickup Requested Successfully",
+
+        pickupStatus:
+          updatedOrder.pickupStatus,
+
+        order:
+          updatedOrder,
+      });
+
+    } catch (error) {
+
+      console.log(error);
+
+      res.status(500).json({
+
+        message:
+          "Failed to request pickup",
+      });
+    }
+  };
+
+        return res.status(404).json({
+
+          message:
+            "Order not found",
         });
       }
 
@@ -402,7 +600,7 @@ const requestPickup =
       res.status(500).json({
 
         message:
-          error.message
+          error.message,
       });
     }
   };
@@ -425,23 +623,29 @@ const updatePickupStatus =
         return res.status(404).json({
 
           message:
-            "Order not found"
+            "Order not found",
         });
       }
 
-      if (req.body.pickupDate) {
+      if (
+        req.body.pickupDate
+      ) {
 
         order.pickupDate =
           req.body.pickupDate;
       }
 
-      if (req.body.pickupSlot) {
+      if (
+        req.body.pickupSlot
+      ) {
 
         order.pickupSlot =
           req.body.pickupSlot;
       }
 
-      if (req.body.pickupStatus) {
+      if (
+        req.body.pickupStatus
+      ) {
 
         order.pickupStatus =
           req.body.pickupStatus;
@@ -459,7 +663,7 @@ const updatePickupStatus =
       res.status(500).json({
 
         message:
-          error.message
+          error.message,
       });
     }
   };
@@ -481,5 +685,5 @@ module.exports = {
 
   requestPickup,
 
-  updatePickupStatus
+  updatePickupStatus,
 };

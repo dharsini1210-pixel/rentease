@@ -80,7 +80,7 @@ function Checkout() {
         const res =
           await axios.get(
 
-            "http://localhost:5000/api/cart",
+            "https://rentease-d1zx.onrender.com/api/cart",
 
             {
               headers: {
@@ -183,7 +183,7 @@ function Checkout() {
 
         await axios.post(
 
-          "http://localhost:5000/api/orders",
+          "https://rentease-d1zx.onrender.com/api/orders",
 
           {
             items:
@@ -235,7 +235,7 @@ function Checkout() {
 
           await axios.delete(
 
-            `http://localhost:5000/api/cart/${item._id}`,
+            `https://rentease-d1zx.onrender.com/api/cart/${item._id}`,
 
             {
               headers: {
@@ -300,7 +300,9 @@ function Checkout() {
         return;
       }
 
+      // =========================
       // RAZORPAY
+      // =========================
       try {
 
         const loaded =
@@ -315,10 +317,11 @@ function Checkout() {
           return;
         }
 
+        // CREATE ORDER
         const orderRes =
           await axios.post(
 
-            "http://localhost:5000/api/payment/create-order",
+            "https://rentease-d1zx.onrender.com/api/payment/create-order",
 
             {
               amount:
@@ -329,6 +332,9 @@ function Checkout() {
         const order =
           orderRes.data;
 
+        // =========================
+        // RAZORPAY OPTIONS
+        // =========================
         const options = {
 
           key:
@@ -349,12 +355,76 @@ function Checkout() {
           order_id:
             order.id,
 
+          // =========================
+          // PAYMENT SUCCESS
+          // =========================
           handler:
-            async function () {
+            async function (
+              response
+            ) {
 
-              await placeOrder(
-                "Paid"
+              console.log(
+                "FULL RAZORPAY RESPONSE:",
+                response
               );
+
+              try {
+
+                // VERIFY PAYMENT
+                const verifyRes =
+                  await axios.post(
+
+                    "https://rentease-d1zx.onrender.com/api/payment/verify",
+
+                    {
+
+                      razorpay_order_id:
+                        response.razorpay_order_id,
+
+                      razorpay_payment_id:
+                        response.razorpay_payment_id,
+
+                      razorpay_signature:
+                        response.razorpay_signature,
+                    }
+                  );
+
+                console.log(
+                  "VERIFY RESPONSE:",
+                  verifyRes.data
+                );
+
+                // SUCCESS
+                if (
+                  verifyRes.data.success
+                ) {
+
+                  toast.success(
+                    "✅ Payment Verified"
+                  );
+
+                  await placeOrder(
+                    "Paid"
+                  );
+
+                } else {
+
+                  toast.error(
+                    "❌ Payment Verification Failed"
+                  );
+                }
+
+              } catch (error) {
+
+                console.log(
+                  "VERIFY ERROR:",
+                  error.response?.data || error
+                );
+
+                toast.error(
+                  "Verification Failed"
+                );
+              }
             },
 
           prefill: {

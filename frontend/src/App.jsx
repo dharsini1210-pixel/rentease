@@ -29,6 +29,10 @@ import AdminOrders from "./pages/AdminOrders";
 import AdminMaintenance from "./pages/AdminMaintenance";
 import ManageOrderDetails from "./pages/ManageOrderDetails";
 
+// NEW PICKUP PAGE
+import AdminPickupRequests
+  from "./pages/AdminPickupRequests";
+
 function App() {
 
   return (
@@ -159,7 +163,11 @@ function App() {
         {/* MANAGE ORDER DETAILS */}
         <Route
           path="/admin/manage-orders/:id"
-          element={<ManageOrderDetails />}
+          element={
+            <AdminRoute>
+              <ManageOrderDetails />
+            </AdminRoute>
+          }
         />
 
         {/* ADMIN MAINTENANCE */}
@@ -168,6 +176,16 @@ function App() {
           element={
             <AdminRoute>
               <AdminMaintenance />
+            </AdminRoute>
+          }
+        />
+
+        {/* NEW PICKUP REQUESTS PAGE */}
+        <Route
+          path="/admin/pickups"
+          element={
+            <AdminRoute>
+              <AdminPickupRequests />
             </AdminRoute>
           }
         />

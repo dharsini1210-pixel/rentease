@@ -45,7 +45,7 @@ function ProductDetails() {
         const res =
           await axios.get(
 
-            `http://localhost:5000/api/products/${id}`
+            `https://rentease-d1zx.onrender.com/api/products/${id}`
           );
 
         setProduct(
@@ -103,7 +103,7 @@ function ProductDetails() {
 
         await axios.post(
 
-          "http://localhost:5000/api/cart",
+          "https://rentease-d1zx.onrender.com/api/cart",
 
           {
             productId:

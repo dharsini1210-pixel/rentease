@@ -8,14 +8,18 @@ const path = require("path");
 
 const connectDB = require("./config/db");
 
-// Middleware
+// =========================
+// MIDDLEWARE
+// =========================
 const {
-  protect
+  protect,
 } = require(
   "./middleware/authMiddleware"
 );
 
-// Routes
+// =========================
+// ROUTES
+// =========================
 const userRoutes = require(
   "./routes/userRoutes"
 );
@@ -40,13 +44,13 @@ const adminRoutes = require(
   "./routes/adminRoutes"
 );
 
-// =========================
-// PAYMENT ROUTES
-// =========================
 const paymentRoutes = require(
   "./routes/paymentRoutes"
 );
 
+// =========================
+// EXPRESS APP
+// =========================
 const app = express();
 
 console.log(
@@ -134,7 +138,15 @@ app.post(
 );
 
 // =========================
-// API ROUTES
+// PAYMENT ROUTES
+// =========================
+app.use(
+  "/api/payment",
+  paymentRoutes
+);
+
+// =========================
+// OTHER API ROUTES
 // =========================
 app.use(
   "/api/users",
@@ -164,14 +176,6 @@ app.use(
 app.use(
   "/api/admin",
   adminRoutes
-);
-
-// =========================
-// PAYMENT API
-// =========================
-app.use(
-  "/api/payment",
-  paymentRoutes
 );
 
 // =========================
@@ -216,7 +220,12 @@ app.use(
 // =========================
 app.use(
 
-  (err, req, res, next) => {
+  (
+    err,
+    req,
+    res,
+    next
+  ) => {
 
     console.error(
       "❌ GLOBAL ERROR:",

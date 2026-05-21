@@ -6,10 +6,12 @@ function AdminNavbar() {
 
     <div style={styles.navbar}>
 
+      {/* LOGO */}
       <h1 style={styles.logo}>
         RentEase Admin
       </h1>
 
+      {/* MENU */}
       <div style={styles.menu}>
 
         <Link
@@ -40,6 +42,18 @@ function AdminNavbar() {
           Maintenance
         </Link>
 
+        {/* NEW PICKUP REQUESTS TAB */}
+        <Link
+          to="/admin/pickups"
+          style={{
+            ...styles.link,
+
+            color: "#fbbf24",
+          }}
+        >
+          Pickup Requests
+        </Link>
+
       </div>
 
     </div>
@@ -58,13 +72,20 @@ const styles = {
 
     display: "flex",
 
-    justifyContent: "space-between",
+    justifyContent:
+      "space-between",
 
     alignItems: "center",
 
     padding: "20px 50px",
 
     boxSizing: "border-box",
+
+    position: "sticky",
+
+    top: 0,
+
+    zIndex: 1000,
   },
 
   logo: {
@@ -74,13 +95,19 @@ const styles = {
     fontSize: "36px",
 
     fontWeight: "bold",
+
+    letterSpacing: "1px",
   },
 
   menu: {
 
     display: "flex",
 
-    gap: "30px",
+    gap: "35px",
+
+    alignItems: "center",
+
+    flexWrap: "wrap",
   },
 
   link: {
@@ -92,6 +119,8 @@ const styles = {
     fontWeight: "600",
 
     fontSize: "18px",
+
+    transition: "0.3s",
   },
 };
 

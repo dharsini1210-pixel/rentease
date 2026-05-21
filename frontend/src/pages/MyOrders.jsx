@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+
 import axios from "axios";
+
+import jsPDF from "jspdf";
 
 function MyOrders() {
 
@@ -11,7 +14,6 @@ function MyOrders() {
     setMaintenanceRequests
   ] = useState([]);
 
-  // MODAL STATES
   const [showModal, setShowModal] =
     useState(false);
 
@@ -62,7 +64,7 @@ function MyOrders() {
 
       const res = await axios.get(
 
-        "http://localhost:5000/api/orders/my-orders",
+        "https://rentease-d1zx.onrender.com/api/orders/my-orders",
 
         config
       );
@@ -97,7 +99,7 @@ function MyOrders() {
         const res =
           await axios.get(
 
-            "http://localhost:5000/api/maintenance/my-requests",
+            "https://rentease-d1zx.onrender.com/api/maintenance/my-requests",
 
             config
           );
@@ -172,7 +174,7 @@ function MyOrders() {
 
         await axios.post(
 
-          "http://localhost:5000/api/maintenance",
+          "https://rentease-d1zx.onrender.com/api/maintenance",
 
           {
             order:
@@ -226,9 +228,12 @@ function MyOrders() {
 
         await axios.put(
 
-          `http://localhost:5000/api/orders/${orderId}/request-pickup`,
+          `https://rentease-d1zx.onrender.com/api/orders/${orderId}/request-pickup`,
 
-          {},
+          {
+            pickupStatus:
+              "Requested",
+          },
 
           config
         );
@@ -249,14 +254,271 @@ function MyOrders() {
       }
     };
 
+  // =========================
+  // DOWNLOAD INVOICE
+  // =========================
+  const downloadInvoice = (order) => {
+
+    const doc = new jsPDF();
+
+    // HEADER
+    doc.setFillColor(30, 60, 114);
+
+    doc.rect(0, 0, 210, 40, "F");
+
+    doc.setTextColor(255, 255, 255);
+
+    doc.setFontSize(28);
+
+    doc.text(
+      "RentEase",
+      20,
+      20
+    );
+
+    doc.setFontSize(12);
+
+    doc.text(
+      "Rental Platform Invoice",
+      20,
+      30
+    );
+
+    doc.setFontSize(24);
+
+    doc.text(
+      "INVOICE",
+      145,
+      18
+    );
+
+    doc.setFontSize(11);
+
+    doc.text(
+      `Invoice ID: ${order._id
+        .slice(-6)
+        .toUpperCase()}`,
+      130,
+      28
+    );
+
+    doc.text(
+      `Date: ${new Date()
+        .toLocaleDateString()}`,
+      130,
+      35
+    );
+
+    doc.setTextColor(0, 0, 0);
+
+    // CUSTOMER DETAILS
+    doc.setFillColor(240, 240, 240);
+
+    doc.rect(15, 55, 180, 40, "F");
+
+    doc.setFontSize(16);
+
+    doc.text(
+      "Customer Details",
+      20,
+      68
+    );
+
+    doc.setFontSize(12);
+
+    doc.text(
+      `Name: ${userInfo.name}`,
+      20,
+      78
+    );
+
+    doc.text(
+      `Email: ${userInfo.email}`,
+      20,
+      86
+    );
+
+    doc.text(
+      `Address: ${order.address}`,
+      20,
+      94
+    );
+
+    // ORDER DETAILS
+    doc.setFillColor(245, 245, 255);
+
+    doc.rect(15, 108, 180, 60, "F");
+
+    doc.setFontSize(16);
+
+    doc.text(
+      "Order Details",
+      20,
+      120
+    );
+
+    doc.setFontSize(12);
+
+    doc.text(
+      `Rental Duration: ${order.rentalDuration} Months`,
+      20,
+      132
+    );
+
+    doc.text(
+      `Delivery Date: ${new Date(
+        order.deliveryDate
+      ).toLocaleDateString()}`,
+      20,
+      140
+    );
+
+    doc.text(
+      `Delivery Slot: ${order.deliverySlot}`,
+      20,
+      148
+    );
+
+    doc.text(
+      `Pickup Status: ${order.pickupStatus || "Not Scheduled"}`,
+      20,
+      156
+    );
+
+    doc.text(
+      `Order Status: ${order.status}`,
+      110,
+      132
+    );
+
+    doc.text(
+      `Payment Status: ${order.paymentStatus}`,
+      110,
+      140
+    );
+
+    doc.text(
+      `Delivery Status: ${order.deliveryStatus}`,
+      110,
+      148
+    );
+
+    // PRODUCTS TABLE HEADER
+    doc.setFillColor(30, 60, 114);
+
+    doc.rect(15, 180, 180, 10, "F");
+
+    doc.setTextColor(255, 255, 255);
+
+    doc.setFontSize(12);
+
+    doc.text(
+      "Product",
+      20,
+      187
+    );
+
+    doc.text(
+      "Qty",
+      105,
+      187
+    );
+
+    doc.text(
+      "Rent",
+      130,
+      187
+    );
+
+    doc.text(
+      "Subtotal",
+      165,
+      187
+    );
+
+    // PRODUCTS
+    doc.setTextColor(0, 0, 0);
+
+    let y = 203;
+
+    order.items.forEach((item) => {
+
+      const subtotal =
+        item.pricePerMonth *
+        item.quantity;
+
+      doc.text(
+        item.name,
+        20,
+        y
+      );
+
+      doc.text(
+        String(item.quantity),
+        107,
+        y
+      );
+
+      doc.text(
+        `₹${item.pricePerMonth}`,
+        128,
+        y
+      );
+
+      doc.text(
+        `₹${subtotal}`,
+        163,
+        y
+      );
+
+      y += 12;
+    });
+
+    // TOTAL
+    y += 12;
+
+    doc.setFillColor(30, 60, 114);
+
+    doc.rect(110, y, 85, 20, "F");
+
+    doc.setTextColor(255, 255, 255);
+
+    doc.setFontSize(18);
+
+    doc.text(
+      `Total: ₹${order.totalAmount}`,
+      120,
+      y + 13
+    );
+
+    // FOOTER
+    doc.setTextColor(120);
+
+    doc.setFontSize(11);
+
+    doc.text(
+      "Thank you for choosing RentEase ❤️",
+      20,
+      280
+    );
+
+    doc.text(
+      "For support contact: rentease22@gmail.com",
+      20,
+      287
+    );
+
+    doc.save(
+      `RentEase_Invoice_${order._id}.pdf`
+    );
+  };
+
   return (
 
     <div
       style={{
         minHeight: "100vh",
-
         padding: "40px",
-
         background:
           "linear-gradient(135deg, #667eea, #764ba2, #6dd5ed)",
       }}
@@ -265,11 +527,8 @@ function MyOrders() {
       <h1
         style={{
           textAlign: "center",
-
           marginBottom: "40px",
-
           fontSize: "55px",
-
           color: "black",
         }}
       >
@@ -281,7 +540,6 @@ function MyOrders() {
         <h2
           style={{
             textAlign: "center",
-
             color: "black",
           }}
         >
@@ -293,13 +551,9 @@ function MyOrders() {
         <div
           style={{
             display: "flex",
-
             flexDirection: "column",
-
             gap: "30px",
-
             maxWidth: "1000px",
-
             margin: "auto",
           }}
         >
@@ -308,20 +562,26 @@ function MyOrders() {
 
             <div
               key={order._id}
-
               style={{
                 background: "white",
-
                 borderRadius: "20px",
-
                 padding: "30px",
-
                 boxShadow:
                   "0 10px 30px rgba(0,0,0,0.2)",
               }}
             >
 
-              {/* ITEMS */}
+              <h2
+                style={{
+                  color: "#1e3c72",
+                  marginBottom: "20px",
+                }}
+              >
+                Order ID:
+                {" "}
+                {order._id}
+              </h2>
+
               {order.items.map((item) => {
 
                 const maintenanceStatus =
@@ -333,17 +593,12 @@ function MyOrders() {
 
                   <div
                     key={item._id}
-
                     style={{
                       display: "flex",
-
                       gap: "20px",
-
                       marginBottom: "20px",
-
                       borderBottom:
                         "1px solid #ddd",
-
                       paddingBottom:
                         "20px",
                     }}
@@ -351,16 +606,11 @@ function MyOrders() {
 
                     <img
                       src={item.image}
-
                       alt={item.name}
-
                       style={{
                         width: "140px",
-
                         height: "120px",
-
                         objectFit: "cover",
-
                         borderRadius: "12px",
                       }}
                     />
@@ -386,17 +636,14 @@ function MyOrders() {
                         / month
                       </p>
 
-                      {/* MAINTENANCE STATUS */}
                       {maintenanceStatus && (
 
                         <p
                           style={{
                             marginTop:
                               "10px",
-
                             fontWeight:
                               "bold",
-
                             color:
                               "#ff9800",
                           }}
@@ -409,7 +656,6 @@ function MyOrders() {
                         </p>
                       )}
 
-                      {/* REQUEST MAINTENANCE */}
                       {!maintenanceStatus && (
 
                         <button
@@ -424,25 +670,18 @@ function MyOrders() {
                           style={{
                             marginTop:
                               "10px",
-
                             background:
                               "#ff9800",
-
                             color:
                               "white",
-
                             border:
                               "none",
-
                             padding:
                               "10px 16px",
-
                             borderRadius:
                               "8px",
-
                             cursor:
                               "pointer",
-
                             fontWeight:
                               "bold",
                           }}
@@ -457,7 +696,6 @@ function MyOrders() {
                 );
               })}
 
-              {/* ORDER DETAILS */}
               <h3>
                 Address:
                 {" "}
@@ -502,11 +740,8 @@ function MyOrders() {
               <div
                 style={{
                   marginTop: "15px",
-
                   padding: "15px",
-
                   background: "#f3f0ff",
-
                   borderRadius: "12px",
                 }}
               >
@@ -514,7 +749,6 @@ function MyOrders() {
                 <h3
                   style={{
                     color: "#764ba2",
-
                     marginBottom: "10px",
                   }}
                 >
@@ -526,12 +760,16 @@ function MyOrders() {
                     Pickup Status:
                   </strong>
                   {" "}
+
                   {
-                    order.pickupStatus
+                    !order.pickupStatus
+
+                      ? "Not Scheduled"
+
+                      : order.pickupStatus
                   }
                 </p>
 
-                {/* PICKUP DATE */}
                 {order.pickupDate && (
 
                   <p>
@@ -539,15 +777,10 @@ function MyOrders() {
                       Pickup Date:
                     </strong>
                     {" "}
-                    {
-                      new Date(
-                        order.pickupDate
-                      ).toLocaleDateString()
-                    }
+                    {order.pickupDate}
                   </p>
                 )}
 
-                {/* PICKUP SLOT */}
                 {order.pickupSlot && (
 
                   <p>
@@ -555,57 +788,113 @@ function MyOrders() {
                       Pickup Slot:
                     </strong>
                     {" "}
-                    {
-                      order.pickupSlot
-                    }
+                    {order.pickupSlot}
                   </p>
                 )}
 
               </div>
 
-              {/* REQUEST PICKUP */}
-              {order.pickupStatus ===
-                "Not Scheduled" && (
+              {/* REQUEST BUTTON */}
+              {
+                (
+                  !order.pickupStatus ||
 
-                <button
+                  order.pickupStatus ===
+                  "Not Scheduled"
+                ) && (
 
-                  onClick={() =>
-                    requestPickup(
-                      order._id
-                    )
-                  }
+                  <button
 
-                  style={{
-                    marginTop: "15px",
+                    onClick={() =>
+                      requestPickup(
+                        order._id
+                      )
+                    }
 
-                    background:
-                      "#764ba2",
+                    style={{
+                      marginTop: "15px",
+                      background:
+                        "#764ba2",
+                      color: "white",
+                      border: "none",
+                      padding:
+                        "12px 20px",
+                      borderRadius:
+                        "8px",
+                      cursor:
+                        "pointer",
+                      fontWeight:
+                        "bold",
+                    }}
+                  >
+                    Request Pickup
+                  </button>
+                )
+              }
 
-                    color: "white",
+              {/* REQUESTED */}
+              {
+                order.pickupStatus ===
+                "Requested" && (
 
-                    border: "none",
+                  <div
+                    style={{
+                      marginTop: "15px",
+                      padding: "12px",
+                      background: "#fff7ed",
+                      borderRadius: "10px",
+                      color: "#ea580c",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Pickup Requested Successfully ✅
+                  </div>
+                )
+              }
 
-                    padding:
-                      "12px 20px",
+              {/* SCHEDULED */}
+              {
+                order.pickupStatus ===
+                "Pickup Scheduled" && (
 
-                    borderRadius:
-                      "8px",
+                  <div
+                    style={{
+                      marginTop: "15px",
+                      padding: "12px",
+                      background: "#ecfeff",
+                      borderRadius: "10px",
+                      color: "#0891b2",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Pickup Scheduled 🚚
+                  </div>
+                )
+              }
 
-                    cursor:
-                      "pointer",
+              {/* PICKED UP */}
+              {
+                order.pickupStatus ===
+                "Picked Up" && (
 
-                    fontWeight:
-                      "bold",
-                  }}
-                >
-                  Request Pickup
-                </button>
-              )}
+                  <div
+                    style={{
+                      marginTop: "15px",
+                      padding: "12px",
+                      background: "#ecfdf5",
+                      borderRadius: "10px",
+                      color: "#16a34a",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Product Picked Up ✅
+                  </div>
+                )
+              }
 
               <h2
                 style={{
                   color: "#1e3c72",
-
                   marginTop: "20px",
                 }}
               >
@@ -618,7 +907,29 @@ function MyOrders() {
               <h3
                 style={{
                   marginTop: "10px",
+                  color:
+                    order.paymentStatus ===
+                    "Paid"
 
+                      ? "green"
+
+                      : "orange",
+                }}
+              >
+                Payment:
+                {" "}
+
+                {order.paymentStatus ===
+                "Paid"
+
+                  ? "Paid ✅"
+
+                  : "Pending ⏳"}
+              </h3>
+
+              <h3
+                style={{
+                  marginTop: "10px",
                   color: "green",
                 }}
               >
@@ -626,6 +937,33 @@ function MyOrders() {
                 {" "}
                 {order.status}
               </h3>
+
+              {/* DOWNLOAD INVOICE */}
+              <button
+
+                onClick={() =>
+                  downloadInvoice(order)
+                }
+
+                style={{
+                  marginTop: "20px",
+                  background: "#00b894",
+                  color: "white",
+                  border: "none",
+                  padding:
+                    "12px 22px",
+                  borderRadius:
+                    "10px",
+                  cursor:
+                    "pointer",
+                  fontWeight:
+                    "bold",
+                  fontSize:
+                    "15px",
+                }}
+              >
+                Download Invoice
+              </button>
 
             </div>
           ))}
@@ -639,26 +977,17 @@ function MyOrders() {
         <div
           style={{
             position: "fixed",
-
             top: 0,
-
             left: 0,
-
             width: "100%",
-
             height: "100%",
-
             background:
               "rgba(0,0,0,0.5)",
-
             display: "flex",
-
             justifyContent:
               "center",
-
             alignItems:
               "center",
-
             zIndex: 999,
           }}
         >
@@ -666,11 +995,8 @@ function MyOrders() {
           <div
             style={{
               background: "white",
-
               width: "400px",
-
               padding: "30px",
-
               borderRadius: "16px",
             }}
           >
@@ -678,7 +1004,6 @@ function MyOrders() {
             <h2
               style={{
                 textAlign: "center",
-
                 marginBottom: "20px",
               }}
             >
@@ -701,16 +1026,11 @@ function MyOrders() {
 
               style={{
                 width: "100%",
-
                 padding: "12px",
-
                 borderRadius: "10px",
-
                 border:
                   "1px solid #ccc",
-
                 resize: "none",
-
                 marginBottom: "20px",
               }}
             />
@@ -718,7 +1038,6 @@ function MyOrders() {
             <div
               style={{
                 display: "flex",
-
                 justifyContent:
                   "space-between",
               }}
@@ -732,14 +1051,10 @@ function MyOrders() {
 
                 style={{
                   background: "#ccc",
-
                   border: "none",
-
                   padding:
                     "10px 20px",
-
                   borderRadius: "8px",
-
                   cursor: "pointer",
                 }}
               >
@@ -755,18 +1070,12 @@ function MyOrders() {
                 style={{
                   background:
                     "#ff9800",
-
                   color: "white",
-
                   border: "none",
-
                   padding:
                     "10px 20px",
-
                   borderRadius: "8px",
-
                   cursor: "pointer",
-
                   fontWeight: "bold",
                 }}
               >

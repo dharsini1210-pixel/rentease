@@ -34,6 +34,8 @@ function AdminDashboard() {
     pendingDeliveries: 0,
 
     maintenanceRequests: 0,
+
+    pickupRequests: 0,
   });
 
   const adminInfo = JSON.parse(
@@ -62,14 +64,48 @@ function AdminDashboard() {
         },
       };
 
+      // =========================
+      // DASHBOARD STATS
+      // =========================
       const res = await axios.get(
 
-        "http://localhost:5000/api/admin/dashboard-stats",
+        "https://rentease-d1zx.onrender.com/api/admin/dashboard-stats",
 
         config
       );
 
-      setStats(res.data);
+      // =========================
+      // GET ORDERS
+      // =========================
+      const orderRes = await axios.get(
+
+        "https://rentease-d1zx.onrender.com/api/orders",
+
+        config
+      );
+
+      // =========================
+      // PICKUP COUNT
+      // =========================
+      const pickupRequests =
+        orderRes.data.filter(
+
+          (order) =>
+
+            order.pickupStatus ===
+              "Requested" ||
+
+            order.pickupStatus ===
+              "Pickup Scheduled"
+
+        ).length;
+
+      setStats({
+
+        ...res.data,
+
+        pickupRequests,
+      });
 
     } catch (error) {
 
@@ -101,6 +137,12 @@ function AdminDashboard() {
       name: "Maintenance",
       value:
         stats.maintenanceRequests,
+    },
+
+    {
+      name: "Pickup",
+      value:
+        stats.pickupRequests,
     },
   ];
 
@@ -195,8 +237,41 @@ function AdminDashboard() {
             <h2>Maintenance Requests</h2>
 
             <p style={styles.number}>
-              {stats.maintenanceRequests}
+              {
+                stats.maintenanceRequests
+              }
             </p>
+          </div>
+
+          {/* PICKUP REQUEST CARD */}
+          <div
+            style={{
+              ...styles.card,
+
+              background:
+                "linear-gradient(135deg,#fff7ed,#ffedd5)",
+
+              border:
+                "2px solid #f97316",
+            }}
+          >
+
+            <h2>
+              📦 Pickup Requests
+            </h2>
+
+            <p
+              style={{
+                ...styles.number,
+
+                color: "#ea580c",
+              }}
+            >
+              {
+                stats.pickupRequests
+              }
+            </p>
+
           </div>
 
         </div>

@@ -53,7 +53,7 @@ function Products() {
         const res =
           await axios.get(
 
-            "http://localhost:5000/api/products"
+            "https://rentease-d1zx.onrender.com/api/products"
           );
 
         setProducts(

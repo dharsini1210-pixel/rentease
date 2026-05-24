@@ -7,27 +7,32 @@ const addToCart = async (req, res) => {
 
   try {
 
+    // CHECK USER
+    if (!req.user) {
+      return res.status(401).json({
+        message: "User not authenticated"
+      });
+    }
+
     const {
       productId,
       quantity
     } = req.body;
 
     // CHECK EXISTING ITEM
-    let cartItem =
-      await Cart.findOne({
+    let cartItem = await Cart.findOne({
 
-        user: req.user.id,
+      user: req.user._id,
 
-        product: productId
-      });
+      product: productId
+    });
 
     // =========================
     // UPDATE QUANTITY
     // =========================
     if (cartItem) {
 
-      cartItem.quantity =
-        quantity;
+      cartItem.quantity = quantity;
 
       await cartItem.save();
 
@@ -36,21 +41,19 @@ const addToCart = async (req, res) => {
       // =========================
       // CREATE NEW ITEM
       // =========================
-      cartItem =
-        await Cart.create({
+      cartItem = await Cart.create({
 
-          user: req.user.id,
+        user: req.user._id,
 
-          product: productId,
+        product: productId,
 
-          quantity
-        });
+        quantity
+      });
     }
 
     res.status(201).json({
 
-      message:
-        "Cart updated",
+      message: "Cart updated",
 
       cartItem
     });
@@ -64,8 +67,7 @@ const addToCart = async (req, res) => {
 
     res.status(500).json({
 
-      message:
-        error.message
+      message: error.message
     });
   }
 };
@@ -77,12 +79,18 @@ const getCart = async (req, res) => {
 
   try {
 
-    const cart =
-      await Cart.find({
+    // CHECK USER
+    if (!req.user) {
+      return res.status(401).json({
+        message: "User not authenticated"
+      });
+    }
 
-        user: req.user.id
+    const cart = await Cart.find({
 
-      }).populate("product");
+      user: req.user._id
+
+    }).populate("product");
 
     res.json(cart);
 
@@ -95,8 +103,7 @@ const getCart = async (req, res) => {
 
     res.status(500).json({
 
-      message:
-        error.message
+      message: error.message
     });
   }
 };
@@ -104,36 +111,32 @@ const getCart = async (req, res) => {
 // =========================
 // REMOVE FROM CART
 // =========================
-const removeFromCart =
-  async (req, res) => {
+const removeFromCart = async (req, res) => {
 
-    try {
+  try {
 
-      const { id } =
-        req.params;
+    const { id } = req.params;
 
-      await Cart.findByIdAndDelete(id);
+    await Cart.findByIdAndDelete(id);
 
-      res.json({
+    res.json({
 
-        message:
-          "Item removed from cart"
-      });
+      message: "Item removed from cart"
+    });
 
-    } catch (error) {
+  } catch (error) {
 
-      console.log(
-        "❌ REMOVE CART ERROR:",
-        error
-      );
+    console.log(
+      "❌ REMOVE CART ERROR:",
+      error
+    );
 
-      res.status(500).json({
+    res.status(500).json({
 
-        message:
-          error.message
-      });
-    }
-  };
+      message: error.message
+    });
+  }
+};
 
 module.exports = {
 

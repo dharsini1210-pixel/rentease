@@ -4,6 +4,9 @@ const orderSchema =
   new mongoose.Schema(
 
     {
+      // =========================
+      // USER
+      // =========================
       user: {
         type:
           mongoose.Schema.Types.ObjectId,
@@ -13,6 +16,28 @@ const orderSchema =
         required: true,
       },
 
+      // =========================
+      // CUSTOMER INFO
+      // =========================
+      customerName: {
+        type: String,
+        required: true,
+      },
+
+      customerEmail: {
+        type: String,
+        required: true,
+      },
+
+      // ✅ PHONE NUMBER
+      customerPhone: {
+        type: String,
+        required: true,
+      },
+
+      // =========================
+      // ORDER ITEMS
+      // =========================
       items: [
         {
           product: {

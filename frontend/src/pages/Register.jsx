@@ -18,6 +18,10 @@ const Register = () => {
   const [email, setEmail] =
     useState("");
 
+  // ✅ PHONE STATE
+  const [phone, setPhone] =
+    useState("");
+
   const [password, setPassword] =
     useState("");
 
@@ -39,6 +43,7 @@ const Register = () => {
             {
               name,
               email,
+              phone,
               password,
             }
           );
@@ -64,7 +69,7 @@ const Register = () => {
         // SUCCESS MESSAGE
         // =========================
         alert(
-          "Registration Successful"
+          "Registration Successful 🎉"
         );
 
         // =========================
@@ -79,9 +84,6 @@ const Register = () => {
           err
         );
 
-        // =========================
-        // SHOW REAL ERROR
-        // =========================
         alert(
 
           err.response?.data
@@ -148,6 +150,29 @@ const Register = () => {
               e.target.value
             )
           }
+
+          required
+        />
+
+        {/* ✅ PHONE */}
+        <input
+          type="tel"
+
+          placeholder="Phone Number"
+
+          style={styles.input}
+
+          value={phone}
+
+          onChange={(e) =>
+            setPhone(
+              e.target.value
+            )
+          }
+
+          pattern="[0-9]{10}"
+
+          maxLength="10"
 
           required
         />
@@ -270,6 +295,9 @@ const styles = {
     border: "none",
 
     outline: "none",
+
+    boxSizing:
+      "border-box",
   },
 
   button: {

@@ -103,7 +103,6 @@ const placeOrder = async (req, res) => {
 
       // REDUCE STOCK
       product.stock =
-
         product.stock -
         item.quantity;
 
@@ -168,7 +167,17 @@ const placeOrder = async (req, res) => {
       await Order.create({
 
         user:
-          req.user.id,
+          req.user._id,
+
+        // ✅ CUSTOMER INFO
+        customerName:
+          req.user.name,
+
+        customerEmail:
+          req.user.email,
+
+        customerPhone:
+          req.user.phone,
 
         items:
           formattedItems,
@@ -205,7 +214,7 @@ const placeOrder = async (req, res) => {
     await Cart.deleteMany({
 
       user:
-        req.user.id,
+        req.user._id,
     });
 
     // =========================
@@ -255,6 +264,7 @@ const placeOrder = async (req, res) => {
             </h3>
 
             <ul>
+
               <li>
                 <strong>Products:</strong>
                 ${productNames}
@@ -263,6 +273,11 @@ const placeOrder = async (req, res) => {
               <li>
                 <strong>Total Amount:</strong>
                 ₹${totalAmount}
+              </li>
+
+              <li>
+                <strong>Phone:</strong>
+                ${req.user.phone}
               </li>
 
               <li>
@@ -279,6 +294,7 @@ const placeOrder = async (req, res) => {
                 <strong>Address:</strong>
                 ${address}
               </li>
+
             </ul>
 
             <p>
@@ -341,7 +357,7 @@ const getMyOrders =
         await Order.find({
 
           user:
-            req.user.id,
+            req.user._id,
         })
 
           .populate({
@@ -390,7 +406,7 @@ const getAllOrders =
 
           .populate(
             "user",
-            "name email"
+            "name email phone"
           )
 
           .populate({
@@ -523,19 +539,6 @@ const requestPickup =
           req.params.id
         );
 
-      if (!order) {// =========================
-// REQUEST PICKUP
-// =========================
-const requestPickup =
-  async (req, res) => {
-
-    try {
-
-      const order =
-        await Order.findById(
-          req.params.id
-        );
-
       if (!order) {
 
         return res.status(404).json({
@@ -545,7 +548,6 @@ const requestPickup =
         });
       }
 
-      // USER REQUESTS PICKUP
       order.pickupStatus =
         "Requested";
 
@@ -574,33 +576,6 @@ const requestPickup =
 
         message:
           "Failed to request pickup",
-      });
-    }
-  };
-
-        return res.status(404).json({
-
-          message:
-            "Order not found",
-        });
-      }
-
-      order.pickupStatus =
-        "Pickup Scheduled";
-
-      const updatedOrder =
-        await order.save();
-
-      res.json(updatedOrder);
-
-    } catch (error) {
-
-      console.log(error);
-
-      res.status(500).json({
-
-        message:
-          error.message,
       });
     }
   };

@@ -314,7 +314,7 @@ function MyOrders() {
     // CUSTOMER DETAILS
     doc.setFillColor(240, 240, 240);
 
-    doc.rect(15, 55, 180, 40, "F");
+    doc.rect(15, 55, 180, 50, "F");
 
     doc.setFontSize(16);
 
@@ -338,23 +338,30 @@ function MyOrders() {
       86
     );
 
+    // ✅ PHONE NUMBER
+    doc.text(
+      `Phone: ${userInfo.phone}`,
+      20,
+      94
+    );
+
     doc.text(
       `Address: ${order.address}`,
       20,
-      94
+      102
     );
 
     // ORDER DETAILS
     doc.setFillColor(245, 245, 255);
 
-    doc.rect(15, 108, 180, 60, "F");
+    doc.rect(15, 118, 180, 60, "F");
 
     doc.setFontSize(16);
 
     doc.text(
       "Order Details",
       20,
-      120
+      130
     );
 
     doc.setFontSize(12);
@@ -362,7 +369,7 @@ function MyOrders() {
     doc.text(
       `Rental Duration: ${order.rentalDuration} Months`,
       20,
-      132
+      142
     );
 
     doc.text(
@@ -370,43 +377,43 @@ function MyOrders() {
         order.deliveryDate
       ).toLocaleDateString()}`,
       20,
-      140
+      150
     );
 
     doc.text(
       `Delivery Slot: ${order.deliverySlot}`,
       20,
-      148
+      158
     );
 
     doc.text(
       `Pickup Status: ${order.pickupStatus || "Not Scheduled"}`,
       20,
-      156
+      166
     );
 
     doc.text(
       `Order Status: ${order.status}`,
       110,
-      132
+      142
     );
 
     doc.text(
       `Payment Status: ${order.paymentStatus}`,
       110,
-      140
+      150
     );
 
     doc.text(
       `Delivery Status: ${order.deliveryStatus}`,
       110,
-      148
+      158
     );
 
     // PRODUCTS TABLE HEADER
     doc.setFillColor(30, 60, 114);
 
-    doc.rect(15, 180, 180, 10, "F");
+    doc.rect(15, 190, 180, 10, "F");
 
     doc.setTextColor(255, 255, 255);
 
@@ -415,31 +422,31 @@ function MyOrders() {
     doc.text(
       "Product",
       20,
-      187
+      197
     );
 
     doc.text(
       "Qty",
       105,
-      187
+      197
     );
 
     doc.text(
       "Rent",
       130,
-      187
+      197
     );
 
     doc.text(
       "Subtotal",
       165,
-      187
+      197
     );
 
     // PRODUCTS
     doc.setTextColor(0, 0, 0);
 
-    let y = 203;
+    let y = 213;
 
     order.items.forEach((item) => {
 
@@ -582,6 +589,13 @@ function MyOrders() {
                 {order._id}
               </h2>
 
+              {/* ✅ PHONE */}
+              <h3>
+                Phone:
+                {" "}
+                {order.customerPhone}
+              </h3>
+
               {order.items.map((item) => {
 
                 const maintenanceStatus =
@@ -636,455 +650,14 @@ function MyOrders() {
                         / month
                       </p>
 
-                      {maintenanceStatus && (
-
-                        <p
-                          style={{
-                            marginTop:
-                              "10px",
-                            fontWeight:
-                              "bold",
-                            color:
-                              "#ff9800",
-                          }}
-                        >
-                          Maintenance:
-                          {" "}
-                          {
-                            maintenanceStatus
-                          }
-                        </p>
-                      )}
-
-                      {!maintenanceStatus && (
-
-                        <button
-
-                          onClick={() =>
-                            openMaintenanceModal(
-                              order._id,
-                              item.product
-                            )
-                          }
-
-                          style={{
-                            marginTop:
-                              "10px",
-                            background:
-                              "#ff9800",
-                            color:
-                              "white",
-                            border:
-                              "none",
-                            padding:
-                              "10px 16px",
-                            borderRadius:
-                              "8px",
-                            cursor:
-                              "pointer",
-                            fontWeight:
-                              "bold",
-                          }}
-                        >
-                          Request Maintenance
-                        </button>
-                      )}
-
                     </div>
 
                   </div>
                 );
               })}
 
-              <h3>
-                Address:
-                {" "}
-                {order.address}
-              </h3>
-
-              <h3>
-                Rental Duration:
-                {" "}
-                {
-                  order.rentalDuration
-                }
-                {" "}
-                Months
-              </h3>
-
-              <h3>
-                Delivery Date:
-                {" "}
-                {
-                  new Date(
-                    order.deliveryDate
-                  ).toLocaleDateString()
-                }
-              </h3>
-
-              <h3>
-                Delivery Slot:
-                {" "}
-                {order.deliverySlot}
-              </h3>
-
-              <h3>
-                Delivery Status:
-                {" "}
-                {
-                  order.deliveryStatus
-                }
-              </h3>
-
-              {/* PICKUP DETAILS */}
-              <div
-                style={{
-                  marginTop: "15px",
-                  padding: "15px",
-                  background: "#f3f0ff",
-                  borderRadius: "12px",
-                }}
-              >
-
-                <h3
-                  style={{
-                    color: "#764ba2",
-                    marginBottom: "10px",
-                  }}
-                >
-                  Pickup Details 📦
-                </h3>
-
-                <p>
-                  <strong>
-                    Pickup Status:
-                  </strong>
-                  {" "}
-
-                  {
-                    !order.pickupStatus
-
-                      ? "Not Scheduled"
-
-                      : order.pickupStatus
-                  }
-                </p>
-
-                {order.pickupDate && (
-
-                  <p>
-                    <strong>
-                      Pickup Date:
-                    </strong>
-                    {" "}
-                    {order.pickupDate}
-                  </p>
-                )}
-
-                {order.pickupSlot && (
-
-                  <p>
-                    <strong>
-                      Pickup Slot:
-                    </strong>
-                    {" "}
-                    {order.pickupSlot}
-                  </p>
-                )}
-
-              </div>
-
-              {/* REQUEST BUTTON */}
-              {
-                (
-                  !order.pickupStatus ||
-
-                  order.pickupStatus ===
-                  "Not Scheduled"
-                ) && (
-
-                  <button
-
-                    onClick={() =>
-                      requestPickup(
-                        order._id
-                      )
-                    }
-
-                    style={{
-                      marginTop: "15px",
-                      background:
-                        "#764ba2",
-                      color: "white",
-                      border: "none",
-                      padding:
-                        "12px 20px",
-                      borderRadius:
-                        "8px",
-                      cursor:
-                        "pointer",
-                      fontWeight:
-                        "bold",
-                    }}
-                  >
-                    Request Pickup
-                  </button>
-                )
-              }
-
-              {/* REQUESTED */}
-              {
-                order.pickupStatus ===
-                "Requested" && (
-
-                  <div
-                    style={{
-                      marginTop: "15px",
-                      padding: "12px",
-                      background: "#fff7ed",
-                      borderRadius: "10px",
-                      color: "#ea580c",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Pickup Requested Successfully ✅
-                  </div>
-                )
-              }
-
-              {/* SCHEDULED */}
-              {
-                order.pickupStatus ===
-                "Pickup Scheduled" && (
-
-                  <div
-                    style={{
-                      marginTop: "15px",
-                      padding: "12px",
-                      background: "#ecfeff",
-                      borderRadius: "10px",
-                      color: "#0891b2",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Pickup Scheduled 🚚
-                  </div>
-                )
-              }
-
-              {/* PICKED UP */}
-              {
-                order.pickupStatus ===
-                "Picked Up" && (
-
-                  <div
-                    style={{
-                      marginTop: "15px",
-                      padding: "12px",
-                      background: "#ecfdf5",
-                      borderRadius: "10px",
-                      color: "#16a34a",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Product Picked Up ✅
-                  </div>
-                )
-              }
-
-              <h2
-                style={{
-                  color: "#1e3c72",
-                  marginTop: "20px",
-                }}
-              >
-                Total:
-                {" "}
-                ₹
-                {order.totalAmount}
-              </h2>
-
-              <h3
-                style={{
-                  marginTop: "10px",
-                  color:
-                    order.paymentStatus ===
-                    "Paid"
-
-                      ? "green"
-
-                      : "orange",
-                }}
-              >
-                Payment:
-                {" "}
-
-                {order.paymentStatus ===
-                "Paid"
-
-                  ? "Paid ✅"
-
-                  : "Pending ⏳"}
-              </h3>
-
-              <h3
-                style={{
-                  marginTop: "10px",
-                  color: "green",
-                }}
-              >
-                Status:
-                {" "}
-                {order.status}
-              </h3>
-
-              {/* DOWNLOAD INVOICE */}
-              <button
-
-                onClick={() =>
-                  downloadInvoice(order)
-                }
-
-                style={{
-                  marginTop: "20px",
-                  background: "#00b894",
-                  color: "white",
-                  border: "none",
-                  padding:
-                    "12px 22px",
-                  borderRadius:
-                    "10px",
-                  cursor:
-                    "pointer",
-                  fontWeight:
-                    "bold",
-                  fontSize:
-                    "15px",
-                }}
-              >
-                Download Invoice
-              </button>
-
             </div>
           ))}
-
-        </div>
-      )}
-
-      {/* MODAL */}
-      {showModal && (
-
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background:
-              "rgba(0,0,0,0.5)",
-            display: "flex",
-            justifyContent:
-              "center",
-            alignItems:
-              "center",
-            zIndex: 999,
-          }}
-        >
-
-          <div
-            style={{
-              background: "white",
-              width: "400px",
-              padding: "30px",
-              borderRadius: "16px",
-            }}
-          >
-
-            <h2
-              style={{
-                textAlign: "center",
-                marginBottom: "20px",
-              }}
-            >
-              Maintenance Request
-            </h2>
-
-            <textarea
-
-              placeholder="Describe the issue..."
-
-              value={issue}
-
-              onChange={(e) =>
-                setIssue(
-                  e.target.value
-                )
-              }
-
-              rows="5"
-
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "10px",
-                border:
-                  "1px solid #ccc",
-                resize: "none",
-                marginBottom: "20px",
-              }}
-            />
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent:
-                  "space-between",
-              }}
-            >
-
-              <button
-
-                onClick={() =>
-                  setShowModal(false)
-                }
-
-                style={{
-                  background: "#ccc",
-                  border: "none",
-                  padding:
-                    "10px 20px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-
-                onClick={
-                  submitMaintenance
-                }
-
-                style={{
-                  background:
-                    "#ff9800",
-                  color: "white",
-                  border: "none",
-                  padding:
-                    "10px 20px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-              >
-                Submit
-              </button>
-
-            </div>
-
-          </div>
 
         </div>
       )}

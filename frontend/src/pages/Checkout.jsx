@@ -13,6 +13,12 @@ import {
   toast,
 } from "react-toastify";
 
+// =========================
+// BACKEND URL
+// =========================
+const API_URL =
+  "https://YOUR-BACKEND.onrender.com";
+
 function Checkout() {
 
   const navigate =
@@ -80,7 +86,7 @@ function Checkout() {
         const res =
           await axios.get(
 
-            "http://localhost:5000/api/cart",
+            `${API_URL}/api/cart`,
 
             {
               headers: {
@@ -183,7 +189,7 @@ function Checkout() {
 
         await axios.post(
 
-          "http://localhost:5000/api/orders",
+          `${API_URL}/api/orders`,
 
           {
             items:
@@ -235,7 +241,7 @@ function Checkout() {
 
           await axios.delete(
 
-            `http://localhost:5000/api/cart/${item._id}`,
+            `${API_URL}/api/cart/${item._id}`,
 
             {
               headers: {
@@ -287,7 +293,9 @@ function Checkout() {
         return;
       }
 
+      // =========================
       // COD
+      // =========================
       if (
         paymentMethod ===
         "COD"
@@ -317,11 +325,13 @@ function Checkout() {
           return;
         }
 
+        // =========================
         // CREATE ORDER
+        // =========================
         const orderRes =
           await axios.post(
 
-            "http://localhost:5000/api/payment/create-order",
+            `${API_URL}/api/payment/create-order`,
 
             {
               amount:
@@ -364,17 +374,16 @@ function Checkout() {
             ) {
 
               console.log(
-                "FULL RAZORPAY RESPONSE:",
+                "RAZORPAY RESPONSE:",
                 response
               );
 
               try {
 
-                // VERIFY PAYMENT
                 const verifyRes =
                   await axios.post(
 
-                    "http://localhost:5000/api/payment/verify",
+                    `${API_URL}/api/payment/verify`,
 
                     {
 
@@ -394,7 +403,6 @@ function Checkout() {
                   verifyRes.data
                 );
 
-                // SUCCESS
                 if (
                   verifyRes.data.success
                 ) {

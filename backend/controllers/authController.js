@@ -34,10 +34,13 @@ const registerUser = async (
     const {
       name,
       email,
+      phone,
       password,
     } = req.body;
 
+    // =========================
     // CHECK USER
+    // =========================
     const userExists =
       await User.findOne({
         email,
@@ -53,7 +56,9 @@ const registerUser = async (
         });
     }
 
+    // =========================
     // HASH PASSWORD
+    // =========================
     const salt =
       await bcrypt.genSalt(10);
 
@@ -63,7 +68,9 @@ const registerUser = async (
         salt
       );
 
+    // =========================
     // CREATE USER
+    // =========================
     const user =
       await User.create({
 
@@ -71,12 +78,17 @@ const registerUser = async (
 
         email,
 
+        phone,
+
         password:
           hashedPassword,
 
         role: "user",
       });
 
+    // =========================
+    // RESPONSE
+    // =========================
     res.status(201).json({
 
       _id: user._id,
@@ -84,6 +96,8 @@ const registerUser = async (
       name: user.name,
 
       email: user.email,
+
+      phone: user.phone,
 
       role: user.role,
 
@@ -93,6 +107,11 @@ const registerUser = async (
     });
 
   } catch (error) {
+
+    console.log(
+      "❌ REGISTER ERROR:",
+      error
+    );
 
     res.status(500).json({
       message:
@@ -125,7 +144,9 @@ const loginUser = async (
       req.body
     );
 
+    // =========================
     // FIND USER
+    // =========================
     const user =
       await User.findOne({
         email,
@@ -141,7 +162,9 @@ const loginUser = async (
         });
     }
 
+    // =========================
     // CHECK PASSWORD
+    // =========================
     const isMatch =
       await bcrypt.compare(
         password,
@@ -158,7 +181,9 @@ const loginUser = async (
         });
     }
 
+    // =========================
     // SUCCESS LOGIN
+    // =========================
     res.json({
 
       _id: user._id,
@@ -166,6 +191,8 @@ const loginUser = async (
       name: user.name,
 
       email: user.email,
+
+      phone: user.phone,
 
       role: user.role,
 

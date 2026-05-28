@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
-
 import axios from "axios";
-
 import { useNavigate } from "react-router-dom";
-
 import jsPDF from "jspdf";
-
 import { toast } from "react-toastify";
 
 function AdminOrders() {
@@ -40,7 +36,7 @@ function AdminOrders() {
           headers: {
 
             Authorization:
-              `Bearer ${adminInfo.token}`,
+              `Bearer ${adminInfo?.token}`,
           },
         };
 
@@ -53,7 +49,9 @@ function AdminOrders() {
           );
 
         setOrders(
-          res.data
+          Array.isArray(res.data)
+            ? res.data
+            : []
         );
 
       } catch (error) {
@@ -64,6 +62,109 @@ function AdminOrders() {
           "Failed to fetch orders"
         );
       }
+    };
+
+  // =========================
+  // RENTAL END DATE
+  // =========================
+  const getRentalEndDate =
+    (
+      deliveryDate,
+      rentalDuration
+    ) => {
+
+      if (!deliveryDate)
+        return new Date();
+
+      const start =
+        new Date(
+          deliveryDate
+        );
+
+      const end =
+        new Date(start);
+
+      end.setMonth(
+
+        end.getMonth() +
+
+        Number(
+          rentalDuration || 1
+        )
+      );
+
+      return end;
+    };
+
+  // =========================
+  // DAYS LEFT
+  // =========================
+  const getDaysLeft =
+    (
+      deliveryDate,
+      rentalDuration
+    ) => {
+
+      const today =
+        new Date();
+
+      const endDate =
+        getRentalEndDate(
+
+          deliveryDate,
+
+          rentalDuration
+        );
+
+      const diff =
+        endDate - today;
+
+      return Math.ceil(
+
+        diff /
+
+        (1000 * 60 * 60 * 24)
+      );
+    };
+
+  // =========================
+  // RENTAL STATUS
+  // =========================
+  const getRentalStatus =
+    (daysLeft) => {
+
+      if (daysLeft < 0) {
+
+        return {
+
+          text:
+            "Expired",
+
+          color:
+            "#ef4444",
+        };
+      }
+
+      if (daysLeft <= 2) {
+
+        return {
+
+          text:
+            "Expiring Soon",
+
+          color:
+            "#f97316",
+        };
+      }
+
+      return {
+
+        text:
+          "Active",
+
+        color:
+          "#10b981",
+      };
     };
 
   // =========================
@@ -86,6 +187,11 @@ function AdminOrders() {
         status === "Cancelled"
       )
         return "#ef4444";
+
+      if (
+        status === "Expired"
+      )
+        return "#dc2626";
 
       return "#3b82f6";
     };
@@ -110,367 +216,437 @@ function AdminOrders() {
     };
 
   // =========================
-  // PROFESSIONAL INVOICE
+  // DOWNLOAD INVOICE
   // =========================
   const downloadInvoice =
     (order) => {
 
-      const doc =
-        new jsPDF();
+      try {
 
-      // HEADER
-      doc.setFillColor(
-        30,
-        60,
-        114
-      );
+        const doc =
+          new jsPDF();
 
-      doc.rect(
-        0,
-        0,
-        210,
-        40,
-        "F"
-      );
+        const primary =
+          [30, 58, 138];
 
-      // COMPANY NAME
-      doc.setTextColor(
-        255,
-        255,
-        255
-      );
+        const light =
+          [245, 247, 250];
 
-      doc.setFontSize(28);
+        // =========================
+        // HEADER
+        // =========================
+        doc.setFillColor(
+          ...primary
+        );
 
-      doc.text(
-        "RentEase",
-        20,
-        20
-      );
+        doc.rect(
+          0,
+          0,
+          210,
+          42,
+          "F"
+        );
 
-      // SUBTITLE
-      doc.setFontSize(12);
+        doc.setTextColor(
+          255,
+          255,
+          255
+        );
 
-      doc.text(
-        "Rental Platform Invoice",
-        20,
-        30
-      );
+        doc.setFontSize(30);
 
-      // INVOICE TITLE
-      doc.setFontSize(24);
+        doc.text(
+          "RentEase",
+          20,
+          20
+        );
 
-      doc.text(
-        "INVOICE",
-        145,
-        18
-      );
+        doc.setFontSize(13);
 
-      // INVOICE DETAILS
-      doc.setFontSize(11);
+        doc.text(
+          "Rental Operations Invoice",
+          20,
+          30
+        );
 
-      doc.text(
-        `Invoice ID: ${order._id
-          .slice(-6)
-          .toUpperCase()}`,
-        130,
-        28
-      );
+        doc.setFontSize(26);
 
-      doc.text(
-        `Date: ${new Date()
-          .toLocaleDateString()}`,
-        130,
-        35
-      );
+        doc.text(
+          "INVOICE",
+          145,
+          18
+        );
 
-      // RESET TEXT COLOR
-      doc.setTextColor(
-        0,
-        0,
-        0
-      );
+        doc.setFontSize(11);
 
-      // CUSTOMER DETAILS
-      doc.setFillColor(
-        240,
-        240,
-        240
-      );
+        doc.text(
+          `Invoice ID: ${
+            order.invoiceNumber
+              ? order.invoiceNumber
+              : order._id
+                  ?.slice(-6)
+                  ?.toUpperCase() ||
+                "N/A"
+          }`,
+          130,
+          30
+        );
 
-      doc.rect(
-        15,
-        55,
-        180,
-        40,
-        "F"
-      );
+        doc.text(
+          `Generated: ${new Date()
+            .toLocaleDateString()}`,
+          130,
+          37
+        );
 
-      doc.setFontSize(16);
+        // =========================
+        // CUSTOMER DETAILS
+        // =========================
+        doc.setTextColor(
+          0,
+          0,
+          0
+        );
 
-      doc.text(
-        "Customer Details",
-        20,
-        68
-      );
+        doc.setFillColor(
+          ...light
+        );
 
-      doc.setFontSize(12);
+        doc.roundedRect(
+          15,
+          55,
+          180,
+          48,
+          4,
+          4,
+          "F"
+        );
 
-      doc.text(
-        `Customer: ${order.user?.name}`,
-        20,
-        78
-      );
+        doc.setFontSize(18);
 
-      doc.text(
-        `Email: ${order.user?.email}`,
-        20,
-        86
-      );
+        doc.text(
+          "Customer Details",
+          20,
+          70
+        );
 
-      doc.text(
-        `Address: ${order.address}`,
-        20,
-        94
-      );
+        doc.setFontSize(12);
 
-      // ORDER DETAILS
-      doc.setFillColor(
-        245,
-        245,
-        255
-      );
+        doc.text(
+          `Customer: ${
+            order.user?.name ||
+            "N/A"
+          }`,
+          20,
+          82
+        );
 
-      doc.rect(
-        15,
-        108,
-        180,
-        55,
-        "F"
-      );
+        doc.text(
+          `Email: ${
+            order.user?.email ||
+            "N/A"
+          }`,
+          20,
+          90
+        );
 
-      doc.setFontSize(16);
+        doc.text(
+          `Phone: ${
+            order.customerPhone ||
+            "N/A"
+          }`,
+          20,
+          98
+        );
 
-      doc.text(
-        "Order Details",
-        20,
-        120
-      );
+        doc.text(
+          `Address: ${
+            order.address ||
+            "N/A"
+          }`,
+          105,
+          82
+        );
 
-      doc.setFontSize(12);
+        // =========================
+        // PRODUCT TABLE
+        // =========================
+        let startY = 120;
 
-      doc.text(
-        `Rental Duration: ${order.rentalDuration} Months`,
-        20,
-        132
-      );
+        doc.setFillColor(
+          ...primary
+        );
 
-      doc.text(
-        `Delivery Date: ${new Date(
-          order.deliveryDate
-        ).toLocaleDateString()}`,
-        20,
-        140
-      );
+        doc.rect(
+          15,
+          startY,
+          180,
+          10,
+          "F"
+        );
 
-      doc.text(
-        `Delivery Slot: ${order.deliverySlot}`,
-        20,
-        148
-      );
+        doc.setTextColor(
+          255,
+          255,
+          255
+        );
 
-      doc.text(
-        `Order Status: ${order.status}`,
-        110,
-        132
-      );
+        doc.setFontSize(12);
 
-      doc.text(
-        `Payment Status: ${order.paymentStatus}`,
-        110,
-        140
-      );
+        doc.text(
+          "Product",
+          20,
+          startY + 7
+        );
 
-      doc.text(
-        `Pickup Status: ${order.pickupStatus}`,
-        110,
-        148
-      );
+        doc.text(
+          "Qty",
+          95,
+          startY + 7
+        );
 
-      // PRODUCTS TABLE HEADER
-      doc.setFillColor(
-        30,
-        60,
-        114
-      );
+        doc.text(
+          "Monthly Rent",
+          120,
+          startY + 7
+        );
 
-      doc.rect(
-        15,
-        175,
-        180,
-        10,
-        "F"
-      );
+        doc.text(
+          "Total",
+          170,
+          startY + 7
+        );
 
-      doc.setTextColor(
-        255,
-        255,
-        255
-      );
+        startY += 16;
 
-      doc.setFontSize(12);
+        doc.setTextColor(
+          0,
+          0,
+          0
+        );
 
-      doc.text(
-        "Product",
-        20,
-        182
-      );
+        (order.items || [])
+          .forEach(
+            (item) => {
 
-      doc.text(
-        "Qty",
-        105,
-        182
-      );
+              const total =
 
-      doc.text(
-        "Rent",
-        130,
-        182
-      );
+                (
+                  item.pricePerMonth || 0
+                ) *
 
-      doc.text(
-        "Subtotal",
-        165,
-        182
-      );
+                (
+                  item.quantity || 1
+                );
 
-      // PRODUCTS
-      doc.setTextColor(
-        0,
-        0,
-        0
-      );
+              doc.text(
+                item.name || "N/A",
+                20,
+                startY
+              );
 
-      let y = 198;
+              doc.text(
+                String(
+                  item.quantity || 1
+                ),
+                95,
+                startY
+              );
 
-      order.items.forEach(
-        (item) => {
+              doc.text(
+                `₹${
+                  item.pricePerMonth || 0
+                }`,
+                120,
+                startY
+              );
 
-          const subtotal =
+              doc.text(
+                `₹${total}`,
+                170,
+                startY
+              );
 
-            (item.product
-              ?.pricePerMonth ||
-
-              item.pricePerMonth ||
-
-              0) *
-
-            item.quantity;
-
-          doc.text(
-            item.product?.name ||
-            item.name,
-            20,
-            y
+              startY += 12;
+            }
           );
 
-          doc.text(
-            String(
-              item.quantity
-            ),
-            107,
-            y
-          );
+        // =========================
+        // RENTAL DETAILS
+        // =========================
+        startY += 10;
 
-          doc.text(
-            `₹${item.product
-              ?.pricePerMonth ||
+        doc.setFillColor(
+          ...light
+        );
 
-              item.pricePerMonth ||
+        doc.roundedRect(
+          15,
+          startY,
+          180,
+          65,
+          4,
+          4,
+          "F"
+        );
 
-              0}`,
-            128,
-            y
-          );
+        doc.setFontSize(16);
 
-          doc.text(
-            `₹${subtotal}`,
-            163,
-            y
-          );
+        doc.text(
+          "Rental Details",
+          20,
+          startY + 12
+        );
 
-          y += 12;
-        }
-      );
+        doc.setFontSize(12);
 
-      // PAYMENT SUMMARY
-      y += 10;
+        doc.text(
+          `Rental Duration: ${
+            order.rentalDuration || 1
+          } Month(s)`,
+          20,
+          startY + 24
+        );
 
-      doc.setFillColor(
-        30,
-        60,
-        114
-      );
+        doc.text(
+          `Delivery Date: ${
+            order.deliveryDate
+              ? new Date(
+                  order.deliveryDate
+                ).toLocaleDateString()
+              : "N/A"
+          }`,
+          20,
+          startY + 34
+        );
 
-      doc.rect(
-        95,
-        y,
-        100,
-        40,
-        "F"
-      );
+        doc.text(
+          `Delivery Slot: ${
+            order.deliverySlot ||
+            "N/A"
+          }`,
+          20,
+          startY + 44
+        );
 
-      doc.setTextColor(
-        255,
-        255,
-        255
-      );
+        doc.text(
+          `Order Status: ${
+            order.status ||
+            "N/A"
+          }`,
+          20,
+          startY + 54
+        );
 
-      doc.setFontSize(12);
+        doc.text(
+          `Payment Status: ${
+            order.paymentStatus ||
+            "Pending"
+          }`,
+          110,
+          startY + 24
+        );
 
-      doc.text(
-        `Monthly Rent : ₹${order.totalAmount - order.deposit}`,
-        102,
-        y + 10
-      );
+        doc.text(
+          `Payment Method: ${
+            order.paymentMethod ||
+            "ONLINE"
+          }`,
+          110,
+          startY + 34
+        );
 
-      doc.text(
-        `Deposit : ₹${order.deposit}`,
-        102,
-        y + 22
-      );
+        doc.text(
+          `Pickup Status: ${
+            order.pickupStatus ||
+            "Not Scheduled"
+          }`,
+          110,
+          startY + 44
+        );
 
-      doc.setFontSize(16);
+        doc.text(
+          `Delivery Status: ${
+            order.deliveryStatus ||
+            "Scheduled"
+          }`,
+          110,
+          startY + 54
+        );
 
-      doc.text(
-        `Grand Total : ₹${order.totalAmount}`,
-        102,
-        y + 35
-      );
+        // =========================
+        // TOTAL BOX
+        // =========================
+        startY += 85;
 
-      // FOOTER
-      doc.setTextColor(
-        120
-      );
+        doc.setFillColor(
+          ...primary
+        );
 
-      doc.setFontSize(11);
+        doc.roundedRect(
+          115,
+          startY,
+          80,
+          36,
+          4,
+          4,
+          "F"
+        );
 
-      doc.text(
-        "Thank you for choosing RentEase ❤️",
-        20,
-        280
-      );
+        doc.setTextColor(
+          255,
+          255,
+          255
+        );
 
-      doc.text(
-        "For support contact: rentease22@gmail.com",
-        20,
-        287
-      );
+        doc.setFontSize(16);
 
-      // SAVE PDF
-      doc.save(
-        `RentEase_Invoice_${order._id}.pdf`
-      );
+        doc.text(
+          "TOTAL AMOUNT",
+          125,
+          startY + 14
+        );
+
+        doc.setFontSize(24);
+
+        doc.text(
+          `₹${
+            order.totalAmount || 0
+          }`,
+          130,
+          startY + 29
+        );
+
+        // =========================
+        // FOOTER
+        // =========================
+        doc.setTextColor(
+          120
+        );
+
+        doc.setFontSize(10);
+
+        doc.text(
+          "This invoice is system generated by RentEase Admin Portal",
+          42,
+          285
+        );
+
+        // =========================
+        // SAVE
+        // =========================
+        doc.save(
+          `RentEase_Admin_Invoice_${order._id}.pdf`
+        );
+
+      } catch (error) {
+
+        console.log(error);
+
+        toast.error(
+          "Failed to generate invoice"
+        );
+      }
     };
 
   return (
@@ -481,12 +657,12 @@ function AdminOrders() {
       <div style={styles.header}>
 
         <h1 style={styles.heading}>
-          Admin Orders Dashboard 📦
+          Rental Operations Dashboard 🚀
         </h1>
 
         <p style={styles.subHeading}>
-          Manage customer orders,
-          delivery and pickups
+          Manage active rentals,
+          deliveries and renewals
         </p>
 
       </div>
@@ -505,359 +681,369 @@ function AdminOrders() {
       ) : (
 
         orders.map(
-          (order) => (
+          (order) => {
 
-            <div
-              key={order._id}
-              style={styles.card}
-            >
+            const daysLeft =
 
-              {/* TOP */}
+              getDaysLeft(
+
+                order.deliveryDate,
+
+                order.rentalDuration
+              );
+
+            const rentalStatus =
+
+              getRentalStatus(
+                daysLeft
+              );
+
+            return (
+
               <div
-                style={styles.topRow}
+                key={order._id}
+                style={styles.card}
               >
 
-                <div>
-
-                  <h2
-                    style={styles.orderId}
-                  >
-                    Order #
-                    {order._id.slice(
-                      -6
-                    )}
-                  </h2>
-
-                  <p
-                    style={
-                      styles.customer
-                    }
-                  >
-                    👤{" "}
-                    {
-                      order.user
-                        ?.name
-                    }
-                  </p>
-
-                  <p
-                    style={
-                      styles.email
-                    }
-                  >
-                    ✉️{" "}
-                    {
-                      order.user
-                        ?.email
-                    }
-                  </p>
-
-                </div>
-
-                {/* BADGES */}
+                {/* TOP */}
                 <div
-                  style={{
-                    display:
-                      "flex",
-
-                    gap: "12px",
-
-                    flexWrap:
-                      "wrap",
-                  }}
+                  style={styles.topRow}
                 >
 
-                  <div
-                    style={{
-                      ...styles.statusBadge,
+                  <div>
 
-                      background:
-                        getStatusColor(
-                          order.status
-                        ),
-                    }}
-                  >
-                    {
-                      order.status ||
-                      "Placed"
-                    }
-                  </div>
+                    <h2
+                      style={styles.orderId}
+                    >
+                      Order #
+                      {
+                        order._id
+                          ?.slice(-6)
+                      }
+                    </h2>
 
-                  <div
-                    style={{
-                      ...styles.statusBadge,
-
-                      background:
-                        getPaymentColor(
-                          order.paymentStatus
-                        ),
-                    }}
-                  >
-                    💳{" "}
-                    {
-                      order.paymentStatus ||
-                      "Pending"
-                    }
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* PRODUCTS */}
-              <div
-                style={
-                  styles.productsBox
-                }
-              >
-
-                <h3>
-                  🛒 Ordered Products
-                </h3>
-
-                {order.items?.map(
-                  (
-                    item,
-                    index
-                  ) => (
-
-                    <div
-                      key={index}
+                    <p
                       style={
-                        styles.productItem
+                        styles.customer
                       }
                     >
+                      👤{" "}
+                      {
+                        order.user
+                          ?.name
+                      }
+                    </p>
 
-                      <span>
-                        {
-                          item.name
-                        }
-                      </span>
+                    <p
+                      style={
+                        styles.email
+                      }
+                    >
+                      ✉️{" "}
+                      {
+                        order.user
+                          ?.email
+                      }
+                    </p>
 
-                      <span>
-                        Qty:{" "}
-                        {
-                          item.quantity
-                        }
-                      </span>
+                    <p
+                      style={
+                        styles.phone
+                      }
+                    >
+                      📞{" "}
+                      {
+                        order.customerPhone
+                      }
+                    </p>
 
-                    </div>
-                  )
-                )}
+                  </div>
 
-              </div>
-
-              {/* INFO GRID */}
-              <div
-                style={styles.grid}
-              >
-
-                <div
-                  style={
-                    styles.infoBox
-                  }
-                >
-
-                  <h3>
-                    📍 Address
-                  </h3>
-
-                  <p>
-                    {
-                      order.address
-                    }
-                  </p>
-
-                </div>
-
-                <div
-                  style={
-                    styles.infoBox
-                  }
-                >
-
-                  <h3>
-                    💰 Payment Summary
-                  </h3>
-
-                  <p>
-                    Monthly Rent:
-                    {" "}
-                    ₹
-                    {
-                      order.totalAmount -
-                      order.deposit
-                    }
-                  </p>
-
-                  <p>
-                    Deposit:
-                    {" "}
-                    ₹
-                    {
-                      order.deposit
-                    }
-                  </p>
-
-                  <p
+                  <div
                     style={{
-                      marginTop: "10px",
-                      fontWeight: "bold",
-                      color: "#1e3a8a",
+                      display:
+                        "flex",
+
+                      gap: "12px",
+
+                      flexWrap:
+                        "wrap",
                     }}
                   >
-                    Grand Total:
-                    {" "}
-                    ₹
-                    {
-                      order.totalAmount
-                    }
-                  </p>
+
+                    <div
+                      style={{
+                        ...styles.statusBadge,
+
+                        background:
+                          getStatusColor(
+                            order.status
+                          ),
+                      }}
+                    >
+                      {
+                        order.status ||
+                        "Placed"
+                      }
+                    </div>
+
+                    <div
+                      style={{
+                        ...styles.statusBadge,
+
+                        background:
+                          getPaymentColor(
+                            order.paymentStatus
+                          ),
+                      }}
+                    >
+                      💳{" "}
+                      {
+                        order.paymentStatus ||
+                        "Pending"
+                      }
+                    </div>
+
+                  </div>
 
                 </div>
 
+                {/* PRODUCTS */}
                 <div
                   style={
-                    styles.infoBox
+                    styles.productsBox
                   }
                 >
 
                   <h3>
-                    📅 Delivery Date
+                    🛒 Ordered Products
                   </h3>
 
-                  <p>
+                  {(order.items || [])
+                    .map(
+                      (
+                        item,
+                        index
+                      ) => (
 
-                    {new Date(
-                      order.deliveryDate
-                    ).toLocaleDateString()}
+                        <div
+                          key={index}
+                          style={
+                            styles.productItem
+                          }
+                        >
 
-                  </p>
+                          <span>
+                            {
+                              item.name
+                            }
+                          </span>
+
+                          <span>
+                            Qty:{" "}
+                            {
+                              item.quantity
+                            }
+                          </span>
+
+                        </div>
+                      )
+                    )}
 
                 </div>
 
+                {/* INFO GRID */}
                 <div
-                  style={
-                    styles.infoBox
-                  }
+                  style={styles.grid}
                 >
 
-                  <h3>
-                    ⏰ Delivery Slot
-                  </h3>
-
-                  <p>
-                    {
-                      order.deliverySlot
+                  {/* ADDRESS */}
+                  <div
+                    style={
+                      styles.infoBox
                     }
-                  </p>
+                  >
 
-                </div>
+                    <h3>
+                      📍 Address
+                    </h3>
 
-                {/* PICKUP STATUS */}
-                <div
-                  style={{
-                    ...styles.infoBox,
+                    <p>
+                      {
+                        order.address
+                      }
+                    </p>
 
-                    background:
+                  </div>
 
-                      order.pickupStatus ===
-                      "Requested"
-
-                        ? "#fff7ed"
-
-                        : "#f8fafc",
-
-                    border:
-
-                      order.pickupStatus ===
-                      "Requested"
-
-                        ? "2px solid #f97316"
-
-                        : "none",
-                  }}
-                >
-
-                  <h3>
-                    📦 Pickup Status
-                  </h3>
-
-                  <p
+                  {/* RENTAL STATUS */}
+                  <div
                     style={{
-                      fontWeight: "bold",
+                      ...styles.infoBox,
 
-                      color:
+                      background:
+                        rentalStatus.text ===
+                        "Expiring Soon"
+
+                          ? "#fff7ed"
+
+                          : "#f0fdf4",
+
+                      border:
+                        `2px solid ${rentalStatus.color}`,
+                    }}
+                  >
+
+                    <h3>
+                      📦 Active Rental
+                    </h3>
+
+                    <p>
+                      <strong>
+                        Rental Ends:
+                      </strong>
+                      {" "}
+                      {getRentalEndDate(
+                        order.deliveryDate,
+                        order.rentalDuration
+                      ).toLocaleDateString()}
+                    </p>
+
+                    <p>
+                      <strong>
+                        Days Left:
+                      </strong>
+                      {" "}
+                      {daysLeft} Days
+                    </p>
+
+                    <p
+                      style={{
+                        fontWeight:
+                          "bold",
+
+                        color:
+                          rentalStatus.color,
+                      }}
+                    >
+
+                      {
+                        rentalStatus.text
+                      }
+
+                    </p>
+
+                  </div>
+
+                  {/* DELIVERY */}
+                  <div
+                    style={
+                      styles.infoBox
+                    }
+                  >
+
+                    <h3>
+                      🚚 Delivery
+                    </h3>
+
+                    <p>
+
+                      {order.deliveryDate
+                        ? new Date(
+                            order.deliveryDate
+                          ).toLocaleDateString()
+                        : "N/A"}
+
+                    </p>
+
+                    <p>
+                      {
+                        order.deliverySlot
+                      }
+                    </p>
+
+                  </div>
+
+                  {/* PICKUP */}
+                  <div
+                    style={{
+                      ...styles.infoBox,
+
+                      background:
 
                         order.pickupStatus ===
                         "Requested"
 
-                          ? "#ea580c"
+                          ? "#fff7ed"
 
-                          : "#334155",
+                          : "#f8fafc",
                     }}
                   >
 
-                    {order.pickupStatus ===
-                    "Requested"
+                    <h3>
+                      📦 Pickup Status
+                    </h3>
 
-                      ? "🟡 Pickup Requested"
+                    <p
+                      style={{
+                        fontWeight:
+                          "bold",
+                      }}
+                    >
 
-                      : order.pickupStatus ===
-                        "Picked Up"
+                      {
+                        order.pickupStatus
+                      }
 
-                      ? "🟢 Picked Up"
+                    </p>
 
-                      : "⚪ Not Scheduled"}
+                  </div>
 
-                  </p>
+                </div>
+
+                {/* BUTTONS */}
+                <div
+                  style={
+                    styles.buttonRow
+                  }
+                >
+
+                  <button
+
+                    onClick={() => {
+
+                      navigate(
+                        `/admin/manage-orders/${order._id}`
+                      );
+                    }}
+
+                    style={
+                      styles.manageBtn
+                    }
+                  >
+                    Manage Order
+                  </button>
+
+                  <button
+
+                    onClick={() =>
+                      downloadInvoice(
+                        order
+                      )
+                    }
+
+                    style={
+                      styles.invoiceBtn
+                    }
+                  >
+                    Download Invoice
+                  </button>
 
                 </div>
 
               </div>
-
-              {/* BUTTONS */}
-              <div
-                style={
-                  styles.buttonRow
-                }
-              >
-
-                <button
-
-                  onClick={() => {
-
-                    navigate(
-                      `/admin/manage-orders/${order._id}`
-                    );
-                  }}
-
-                  style={
-                    styles.manageBtn
-                  }
-                >
-                  Manage Order
-                </button>
-
-                <button
-
-                  onClick={() =>
-                    downloadInvoice(
-                      order
-                    )
-                  }
-
-                  style={
-                    styles.invoiceBtn
-                  }
-                >
-                  Download Invoice
-                </button>
-
-              </div>
-
-            </div>
-          )
+            );
+          }
         )
       )}
 
@@ -985,6 +1171,18 @@ const styles = {
 
     color:
       "#64748b",
+  },
+
+  phone: {
+
+    color:
+      "#0f172a",
+
+    marginTop:
+      "8px",
+
+    fontWeight:
+      "bold",
   },
 
   statusBadge: {

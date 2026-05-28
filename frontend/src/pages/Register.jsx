@@ -18,7 +18,9 @@ const Register = () => {
   const [email, setEmail] =
     useState("");
 
-  // ✅ PHONE STATE
+  // =========================
+  // PHONE STATE
+  // =========================
   const [phone, setPhone] =
     useState("");
 
@@ -33,8 +35,23 @@ const Register = () => {
 
       e.preventDefault();
 
+      // =========================
+      // PHONE VALIDATION
+      // =========================
+      if (
+        phone.length !== 10
+      ) {
+
+        return alert(
+          "Phone number must be 10 digits"
+        );
+      }
+
       try {
 
+        // =========================
+        // API CALL
+        // =========================
         const res =
           await axios.post(
 
@@ -154,7 +171,7 @@ const Register = () => {
           required
         />
 
-        {/* ✅ PHONE */}
+        {/* PHONE */}
         <input
           type="tel"
 

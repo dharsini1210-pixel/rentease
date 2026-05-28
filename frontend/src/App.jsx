@@ -28,10 +28,10 @@ import EditProduct from "./pages/EditProduct";
 import AdminOrders from "./pages/AdminOrders";
 import AdminMaintenance from "./pages/AdminMaintenance";
 import ManageOrderDetails from "./pages/ManageOrderDetails";
+import AdminPickupRequests from "./pages/AdminPickupRequests";
 
-// NEW PICKUP PAGE
-import AdminPickupRequests
-  from "./pages/AdminPickupRequests";
+// ✅ ACTIVE RENTALS
+import ActiveRentals from "./pages/ActiveRentals";
 
 function App() {
 
@@ -120,6 +120,16 @@ function App() {
           }
         />
 
+        {/* ACTIVE RENTALS */}
+        <Route
+          path="/admin/active-rentals"
+          element={
+            <AdminRoute>
+              <ActiveRentals />
+            </AdminRoute>
+          }
+        />
+
         {/* ADD PRODUCT */}
         <Route
           path="/admin/add-product"
@@ -180,7 +190,7 @@ function App() {
           }
         />
 
-        {/* NEW PICKUP REQUESTS PAGE */}
+        {/* PICKUP REQUESTS */}
         <Route
           path="/admin/pickups"
           element={

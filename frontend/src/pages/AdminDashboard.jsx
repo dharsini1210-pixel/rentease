@@ -1,178 +1,371 @@
 import {
   useEffect,
-  useState
+  useState,
 } from "react";
 
 import axios from "axios";
 
+import {
+  useNavigate,
+} from "react-router-dom";
+
 import AdminNavbar from "../components/AdminNavbar";
 
 import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  CartesianGrid,
+  Legend,
 } from "recharts";
+
+// =========================
+// API URL
+// =========================
+const API_URL =
+  "http://localhost:5000";
 
 function AdminDashboard() {
 
-  const [stats, setStats] = useState({
+  const navigate =
+    useNavigate();
 
-    totalUsers: 0,
-
-    totalProducts: 0,
-
-    totalOrders: 0,
-
-    totalRevenue: 0,
-
-    pendingDeliveries: 0,
-
-    maintenanceRequests: 0,
-
-    pickupRequests: 0,
-  });
-
-  const adminInfo = JSON.parse(
-    localStorage.getItem("adminInfo")
-  );
+  const adminInfo =
+    JSON.parse(
+      localStorage.getItem(
+        "adminInfo"
+      )
+    );
 
   // =========================
-  // FETCH DASHBOARD STATS
+  // STATES
   // =========================
-  useEffect(() => {
+  const [stats, setStats] =
+    useState({});
 
-    fetchStats();
+  const [loading, setLoading] =
+    useState(true);
 
-  }, []);
+  const [
+    monthlyStatement,
+    setMonthlyStatement
+  ] = useState({});
 
-  const fetchStats = async () => {
+  const [
+    dailyCustomers,
+    setDailyCustomers
+  ] = useState([]);
 
-    try {
+  const [
+    topProducts,
+    setTopProducts
+  ] = useState([]);
 
-      const config = {
+  const [
+    regularCustomers,
+    setRegularCustomers
+  ] = useState([]);
 
-        headers: {
+  const [
+    customerKeyword,
+    setCustomerKeyword
+  ] = useState("");
 
-          Authorization:
-            `Bearer ${adminInfo.token}`,
-        },
-      };
-
-      // =========================
-      // DASHBOARD STATS
-      // =========================
-      const res = await axios.get(
-
-        "http://localhost:5000/api/admin/dashboard-stats",
-
-        config
-      );
-
-      // =========================
-      // GET ORDERS
-      // =========================
-      const orderRes = await axios.get(
-
-        "http://localhost:5000/api/orders",
-
-        config
-      );
-
-      // =========================
-      // PICKUP COUNT
-      // =========================
-      const pickupRequests =
-        orderRes.data.filter(
-
-          (order) =>
-
-            order.pickupStatus ===
-              "Requested" ||
-
-            order.pickupStatus ===
-              "Pickup Scheduled"
-
-        ).length;
-
-      setStats({
-
-        ...res.data,
-
-        pickupRequests,
-      });
-
-    } catch (error) {
-
-      console.log(error);
-    }
-  };
+  const [
+    searchedOrders,
+    setSearchedOrders
+  ] = useState([]);
 
   // =========================
-  // BAR CHART DATA
+  // CHART DATA
   // =========================
-  const barData = [
+  const revenueChartData =
+    Object.entries(
+      monthlyStatement
+    ).map(([month, data]) => ({
+      month,
+      revenue: data.revenue,
+    }));
 
-    {
-      name: "Users",
-      value: stats.totalUsers,
-    },
-
-    {
-      name: "Products",
-      value: stats.totalProducts,
-    },
-
-    {
-      name: "Orders",
-      value: stats.totalOrders,
-    },
-
-    {
-      name: "Maintenance",
-      value:
-        stats.maintenanceRequests,
-    },
-
-    {
-      name: "Pickup",
-      value:
-        stats.pickupRequests,
-    },
-  ];
-
-  // =========================
-  // PIE CHART DATA
-  // =========================
-  const pieData = [
-
-    {
-      name: "Revenue",
-      value: stats.totalRevenue,
-    },
-
-    {
-      name: "Pending Deliveries",
-      value:
-        stats.pendingDeliveries,
-    },
-  ];
+  const productChartData =
+    topProducts.map((p) => ({
+      name: p[0],
+      rentals: p[1],
+    }));
 
   const COLORS = [
     "#2563eb",
-    "#10b981",
+    "#16a34a",
+    "#f59e0b",
+    "#dc2626",
+    "#9333ea",
   ];
+
+  // =========================
+  // FETCH DATA
+  // =========================
+  useEffect(() => {
+
+    if (!adminInfo) {
+
+      navigate(
+        "/admin-login"
+      );
+
+      return;
+    }
+
+    fetchDashboard();
+
+    fetchMonthlyStatement();
+
+    fetchDailyCustomers();
+
+    fetchTopProducts();
+
+    fetchRegularCustomers();
+
+  }, []);
+
+  // =========================
+  // FETCH DASHBOARD
+  // =========================
+  const fetchDashboard =
+    async () => {
+
+      try {
+
+        const config = {
+
+          headers: {
+
+            Authorization:
+              `Bearer ${adminInfo.token}`,
+          },
+        };
+
+        const res =
+          await axios.get(
+
+            `${API_URL}/api/admin/dashboard-stats`,
+
+            config
+          );
+
+        setStats(res.data);
+
+        setLoading(false);
+
+      } catch (error) {
+
+        console.log(error);
+
+        setLoading(false);
+      }
+    };
+
+  // =========================
+  // MONTHLY STATEMENT
+  // =========================
+  const fetchMonthlyStatement =
+    async () => {
+
+      try {
+
+        const config = {
+
+          headers: {
+
+            Authorization:
+              `Bearer ${adminInfo.token}`,
+          },
+        };
+
+        const res =
+          await axios.get(
+
+            `${API_URL}/api/orders/admin/monthly-statement`,
+
+            config
+          );
+
+        setMonthlyStatement(
+          res.data
+        );
+
+      } catch (error) {
+
+        console.log(error);
+      }
+    };
+
+  // =========================
+  // DAILY CUSTOMERS
+  // =========================
+  const fetchDailyCustomers =
+    async () => {
+
+      try {
+
+        const config = {
+
+          headers: {
+
+            Authorization:
+              `Bearer ${adminInfo.token}`,
+          },
+        };
+
+        const res =
+          await axios.get(
+
+            `${API_URL}/api/orders/admin/daily-customers`,
+
+            config
+          );
+
+        setDailyCustomers(
+          res.data
+        );
+
+      } catch (error) {
+
+        console.log(error);
+      }
+    };
+
+  // =========================
+  // TOP PRODUCTS
+  // =========================
+  const fetchTopProducts =
+    async () => {
+
+      try {
+
+        const config = {
+
+          headers: {
+
+            Authorization:
+              `Bearer ${adminInfo.token}`,
+          },
+        };
+
+        const res =
+          await axios.get(
+
+            `${API_URL}/api/orders/admin/top-products`,
+
+            config
+          );
+
+        setTopProducts(
+          res.data
+        );
+
+      } catch (error) {
+
+        console.log(error);
+      }
+    };
+
+  // =========================
+  // REGULAR CUSTOMERS
+  // =========================
+  const fetchRegularCustomers =
+    async () => {
+
+      try {
+
+        const config = {
+
+          headers: {
+
+            Authorization:
+              `Bearer ${adminInfo.token}`,
+          },
+        };
+
+        const res =
+          await axios.get(
+
+            `${API_URL}/api/orders/admin/regular-customers`,
+
+            config
+          );
+
+        setRegularCustomers(
+          res.data
+        );
+
+      } catch (error) {
+
+        console.log(error);
+      }
+    };
+
+  // =========================
+  // SEARCH CUSTOMER
+  // =========================
+  const searchCustomer =
+    async () => {
+
+      try {
+
+        const config = {
+
+          headers: {
+
+            Authorization:
+              `Bearer ${adminInfo.token}`,
+          },
+        };
+
+        const res =
+          await axios.get(
+
+            `${API_URL}/api/orders/admin/customer-search?keyword=${customerKeyword}`,
+
+            config
+          );
+
+        setSearchedOrders(
+          res.data
+        );
+
+      } catch (error) {
+
+        console.log(error);
+      }
+    };
+
+  // =========================
+  // LOADING
+  // =========================
+  if (loading) {
+
+    return (
+
+      <>
+        <AdminNavbar />
+
+        <div style={styles.loading}>
+          Loading...
+        </div>
+      </>
+    );
+  }
 
   return (
 
     <>
 
-      {/* NAVBAR */}
       <AdminNavbar />
 
       <div style={styles.page}>
@@ -181,96 +374,375 @@ function AdminDashboard() {
         <div style={styles.header}>
 
           <h1 style={styles.heading}>
-            Admin Analytics Dashboard 📊
+            RentEase Business Dashboard 🚀
           </h1>
 
           <p style={styles.subHeading}>
-            Monitor platform performance
+            Enterprise Rental Analytics Platform
           </p>
 
         </div>
 
-        {/* STATS GRID */}
+        {/* MAIN STATS */}
         <div style={styles.grid}>
 
-          <div style={styles.card}>
-            <h2>Total Users</h2>
+          <DashboardCard
+            title="Total Users"
+            value={stats.totalUsers}
+          />
 
-            <p style={styles.number}>
-              {stats.totalUsers}
-            </p>
-          </div>
+          <DashboardCard
+            title="Total Products"
+            value={stats.totalProducts}
+          />
 
-          <div style={styles.card}>
-            <h2>Total Products</h2>
+          <DashboardCard
+            title="Total Orders"
+            value={stats.totalOrders}
+          />
 
-            <p style={styles.number}>
-              {stats.totalProducts}
-            </p>
-          </div>
+          <DashboardCard
+            title="Total Revenue"
+            value={`₹${stats.totalRevenue}`}
+          />
 
-          <div style={styles.card}>
-            <h2>Total Orders</h2>
+          <DashboardCard
+            title="Pending Deliveries"
+            value={stats.pendingDeliveries}
+          />
 
-            <p style={styles.number}>
-              {stats.totalOrders}
-            </p>
-          </div>
+          <DashboardCard
+            title="Maintenance Requests"
+            value={stats.maintenanceRequests}
+          />
 
-          <div style={styles.card}>
-            <h2>Total Revenue</h2>
+        </div>
 
-            <p style={styles.number}>
-              ₹{stats.totalRevenue}
-            </p>
-          </div>
+        {/* SEARCH */}
+        <div style={styles.analyticsCard}>
 
-          <div style={styles.card}>
-            <h2>Pending Deliveries</h2>
+          <h2>
+            🔍 Search Customer Orders
+          </h2>
 
-            <p style={styles.number}>
-              {stats.pendingDeliveries}
-            </p>
-          </div>
+          <div style={styles.searchRow}>
 
-          <div style={styles.card}>
-            <h2>Maintenance Requests</h2>
-
-            <p style={styles.number}>
-              {
-                stats.maintenanceRequests
+            <input
+              type="text"
+              placeholder="Enter customer name"
+              value={customerKeyword}
+              onChange={(e) =>
+                setCustomerKeyword(
+                  e.target.value
+                )
               }
-            </p>
+              style={styles.searchInput}
+            />
+
+            <button
+              onClick={searchCustomer}
+              style={styles.searchBtn}
+            >
+              Search
+            </button>
+
           </div>
 
-          {/* PICKUP REQUEST CARD */}
-          <div
-            style={{
-              ...styles.card,
+          <div style={styles.analyticsGrid}>
 
-              background:
-                "linear-gradient(135deg,#fff7ed,#ffedd5)",
+            {searchedOrders.length === 0 ? (
 
-              border:
-                "2px solid #f97316",
-            }}
-          >
+              <div style={styles.noData}>
+                No Customer Orders Found
+              </div>
+
+            ) : (
+
+              searchedOrders
+
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt) -
+                    new Date(a.createdAt)
+                )
+
+                .map((order) => {
+
+                  const deliveryDate =
+                    new Date(
+                      order.deliveryDate
+                    );
+
+                  const expiryDate =
+                    new Date(
+                      deliveryDate
+                    );
+
+                  expiryDate.setMonth(
+                    expiryDate.getMonth() +
+                      Number(
+                        order.rentalDuration || 1
+                      )
+                  );
+
+                  return (
+
+                    <div
+                      key={order._id}
+                      style={styles.analyticsBox}
+                    >
+
+                      <h2>
+                        👤 {
+                          order.customerName ||
+                          order.user?.name
+                        }
+                      </h2>
+
+                      <p>
+                        📅 Order Date:
+                        {" "}
+                        {new Date(
+                          order.createdAt
+                        ).toLocaleDateString()}
+                      </p>
+
+                      <p>
+                        🚚 Delivery:
+                        {" "}
+                        {deliveryDate.toLocaleDateString()}
+                      </p>
+
+                      <p>
+                        ⏳ Expiry:
+                        {" "}
+                        {expiryDate.toLocaleDateString()}
+                      </p>
+
+                      <p>
+                        🗓 Duration:
+                        {" "}
+                        {
+                          order.rentalDuration
+                        } Month(s)
+                      </p>
+
+                      <p>
+                        💳 Payment:
+                        {" "}
+                        {
+                          order.paymentStatus
+                        }
+                      </p>
+
+                      <p>
+                        📦 Status:
+                        {" "}
+                        {order.status}
+                      </p>
+
+                      <p>
+                        💰 Amount:
+                        ₹{
+                          order.totalAmount
+                        }
+                      </p>
+
+                    </div>
+                  );
+                })
+            )}
+
+          </div>
+
+        </div>
+
+        {/* ANALYTICS */}
+        <div style={styles.analyticsGrid}>
+
+          {/* REGULAR CUSTOMERS */}
+          <div style={styles.analyticsBox}>
 
             <h2>
-              📦 Pickup Requests
+              ⭐ Regular Customers
             </h2>
 
-            <p
-              style={{
-                ...styles.number,
-
-                color: "#ea580c",
-              }}
-            >
+            <h1>
               {
-                stats.pickupRequests
+                regularCustomers.length
               }
-            </p>
+            </h1>
+
+            {regularCustomers.map(
+              (
+                customer,
+                index
+              ) => (
+
+                <div
+                  key={index}
+                  style={styles.detailCard}
+                >
+
+                  <strong>
+                    {customer.name}
+                  </strong>
+
+                  <p>
+                    Orders:
+                    {" "}
+                    {
+                      customer.orders
+                    }
+                  </p>
+
+                  <p>
+                    ₹
+                    {
+                      customer.totalSpent
+                    }
+                  </p>
+
+                </div>
+              )
+            )}
+
+          </div>
+
+          {/* TOP PRODUCTS */}
+          <div style={styles.analyticsBox}>
+
+            <h2>
+              🔥 Top Products
+            </h2>
+
+            <h1>
+              {
+                topProducts.length
+              }
+            </h1>
+
+            {topProducts.map(
+              (
+                product,
+                index
+              ) => (
+
+                <div
+                  key={index}
+                  style={styles.detailCard}
+                >
+
+                  <strong>
+                    {product[0]}
+                  </strong>
+
+                  <p>
+                    Rentals:
+                    {" "}
+                    {product[1]}
+                  </p>
+
+                </div>
+              )
+            )}
+
+          </div>
+
+          {/* TODAY CUSTOMERS */}
+          <div style={styles.analyticsBox}>
+
+            <h2>
+              📅 Today's Customers
+            </h2>
+
+            <h1>
+              {
+                dailyCustomers.length
+              }
+            </h1>
+
+            {dailyCustomers.map(
+              (
+                customer,
+                index
+              ) => (
+
+                <div
+                  key={index}
+                  style={styles.detailCard}
+                >
+
+                  <strong>
+                    {
+                      customer.customerName ||
+                      customer.user?.name
+                    }
+                  </strong>
+
+                  <p>
+                    ₹
+                    {
+                      customer.totalAmount
+                    }
+                  </p>
+
+                </div>
+              )
+            )}
+
+          </div>
+
+          {/* MONTHLY REVENUE */}
+          <div style={styles.analyticsBox}>
+
+            <h2>
+              📈 Monthly Revenue
+            </h2>
+
+            <h1>
+              {
+                Object.keys(
+                  monthlyStatement
+                ).length
+              }
+            </h1>
+
+            {Object.entries(
+              monthlyStatement
+            ).map(
+              (
+                [month, data],
+                index
+              ) => (
+
+                <div
+                  key={index}
+                  style={styles.detailCard}
+                >
+
+                  <strong>
+                    {month}
+                  </strong>
+
+                  <p>
+                    Revenue:
+                    ₹
+                    {
+                      data.revenue
+                    }
+                  </p>
+
+                  <p>
+                    Orders:
+                    {
+                      data.orders
+                    }
+                  </p>
+
+                </div>
+              )
+            )}
 
           </div>
 
@@ -282,8 +754,8 @@ function AdminDashboard() {
           {/* BAR CHART */}
           <div style={styles.chartCard}>
 
-            <h2 style={styles.chartTitle}>
-              Platform Overview
+            <h2>
+              📈 Monthly Revenue Chart
             </h2>
 
             <ResponsiveContainer
@@ -291,18 +763,29 @@ function AdminDashboard() {
               height={300}
             >
 
-              <BarChart data={barData}>
+              <BarChart
+                data={
+                  revenueChartData
+                }
+              >
 
-                <XAxis dataKey="name" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="month"
+                />
 
                 <YAxis />
 
                 <Tooltip />
 
+                <Legend />
+
                 <Bar
-                  dataKey="value"
+                  dataKey="revenue"
                   fill="#2563eb"
-                  radius={[8, 8, 0, 0]}
                 />
 
               </BarChart>
@@ -314,8 +797,8 @@ function AdminDashboard() {
           {/* PIE CHART */}
           <div style={styles.chartCard}>
 
-            <h2 style={styles.chartTitle}>
-              Revenue & Deliveries
+            <h2>
+              🥧 Top Product Rentals
             </h2>
 
             <ResponsiveContainer
@@ -326,29 +809,31 @@ function AdminDashboard() {
               <PieChart>
 
                 <Pie
-
-                  data={pieData}
-
-                  cx="50%"
-
-                  cy="50%"
-
+                  data={
+                    productChartData
+                  }
+                  dataKey="rentals"
+                  nameKey="name"
                   outerRadius={100}
-
-                  dataKey="value"
-
                   label
                 >
 
-                  {pieData.map(
-                    (entry, index) => (
+                  {productChartData.map(
+                    (
+                      entry,
+                      index
+                    ) => (
 
                       <Cell
                         key={index}
                         fill={
-                          COLORS[index]
+                          COLORS[
+                            index %
+                              COLORS.length
+                          ]
                         }
                       />
+
                     )
                   )}
 
@@ -370,6 +855,25 @@ function AdminDashboard() {
   );
 }
 
+function DashboardCard({
+  title,
+  value,
+}) {
+
+  return (
+
+    <div style={styles.card}>
+
+      <h2>{title}</h2>
+
+      <p style={styles.number}>
+        {value}
+      </p>
+
+    </div>
+  );
+}
+
 const styles = {
 
   page: {
@@ -382,11 +886,20 @@ const styles = {
     padding: "40px",
   },
 
+  loading: {
+
+    textAlign: "center",
+
+    marginTop: "120px",
+
+    fontSize: "40px",
+  },
+
   header: {
 
     textAlign: "center",
 
-    marginBottom: "50px",
+    marginBottom: "40px",
   },
 
   heading: {
@@ -394,8 +907,6 @@ const styles = {
     fontSize: "52px",
 
     color: "#1e293b",
-
-    marginBottom: "10px",
   },
 
   subHeading: {
@@ -412,9 +923,9 @@ const styles = {
     gridTemplateColumns:
       "repeat(auto-fit,minmax(260px,1fr))",
 
-    gap: "30px",
+    gap: "25px",
 
-    marginBottom: "50px",
+    marginBottom: "40px",
   },
 
   card: {
@@ -439,20 +950,10 @@ const styles = {
 
     color: "#2563eb",
 
-    marginTop: "20px",
+    marginTop: "15px",
   },
 
-  chartGrid: {
-
-    display: "grid",
-
-    gridTemplateColumns:
-      "repeat(auto-fit,minmax(400px,1fr))",
-
-    gap: "30px",
-  },
-
-  chartCard: {
+  analyticsCard: {
 
     background: "white",
 
@@ -460,17 +961,134 @@ const styles = {
 
     borderRadius: "24px",
 
+    marginBottom: "35px",
+
     boxShadow:
       "0 10px 30px rgba(0,0,0,0.08)",
   },
 
-  chartTitle: {
+  searchRow: {
+
+    display: "flex",
+
+    gap: "15px",
+
+    marginTop: "20px",
+
+    marginBottom: "20px",
+  },
+
+  searchInput: {
+
+    padding: "14px",
+
+    borderRadius: "12px",
+
+    border:
+      "1px solid #cbd5e1",
+
+    width: "300px",
+  },
+
+  searchBtn: {
+
+    padding:
+      "14px 25px",
+
+    border: "none",
+
+    borderRadius: "12px",
+
+    background:
+      "#2563eb",
+
+    color: "white",
+
+    cursor: "pointer",
+
+    fontWeight: "bold",
+  },
+
+  analyticsGrid: {
+
+    display: "grid",
+
+    gridTemplateColumns:
+      "repeat(auto-fit,minmax(320px,1fr))",
+
+    gap: "25px",
+  },
+
+  analyticsBox: {
+
+    background: "white",
+
+    borderRadius: "24px",
+
+    padding: "25px",
+
+    boxShadow:
+      "0 10px 30px rgba(0,0,0,0.08)",
+
+    maxHeight: "450px",
+
+    overflowY: "auto",
+  },
+
+  detailCard: {
+
+    background:
+      "#f8fafc",
+
+    padding: "15px",
+
+    borderRadius: "12px",
+
+    marginTop: "15px",
+
+    border:
+      "1px solid #e2e8f0",
+
+    lineHeight: "1.8",
+  },
+
+  chartGrid: {
+
+    display: "grid",
+
+    gridTemplateColumns:
+      "repeat(auto-fit,minmax(500px,1fr))",
+
+    gap: "30px",
+
+    marginTop: "40px",
+  },
+
+  chartCard: {
+
+    background: "white",
+
+    padding: "25px",
+
+    borderRadius: "24px",
+
+    boxShadow:
+      "0 10px 30px rgba(0,0,0,0.08)",
+  },
+
+  noData: {
+
+    background: "#f8fafc",
+
+    padding: "40px",
+
+    borderRadius: "18px",
 
     textAlign: "center",
 
-    marginBottom: "20px",
+    fontWeight: "bold",
 
-    color: "#1e293b",
+    color: "#64748b",
   },
 };
 

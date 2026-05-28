@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-
 import axios from "axios";
-
 import jsPDF from "jspdf";
 
 function MyOrders() {
@@ -10,25 +8,20 @@ function MyOrders() {
     useState([]);
 
   const [
-    maintenanceRequests,
-    setMaintenanceRequests
-  ] = useState([]);
+    showRenewModal,
+    setShowRenewModal
+  ] = useState(false);
 
-  const [showModal, setShowModal] =
-    useState(false);
+  const [
+    renewMonths,
+    setRenewMonths
+  ] = useState(1);
 
-  const [issue, setIssue] =
-    useState("");
+  const [
+    renewOrderId,
+    setRenewOrderId
+  ] = useState(null);
 
-  const [selectedOrder,
-    setSelectedOrder] =
-    useState(null);
-
-  const [selectedProduct,
-    setSelectedProduct] =
-    useState(null);
-
-  // USER INFO
   const userInfo = JSON.parse(
     localStorage.getItem("userInfo")
   );
@@ -36,19 +29,14 @@ function MyOrders() {
   const token = userInfo?.token;
 
   // =========================
-  // FETCH DATA
+  // FETCH ORDERS
   // =========================
   useEffect(() => {
 
     fetchOrders();
 
-    fetchMaintenanceRequests();
-
   }, []);
 
-  // =========================
-  // FETCH ORDERS
-  // =========================
   const fetchOrders = async () => {
 
     try {
@@ -56,18 +44,18 @@ function MyOrders() {
       const config = {
 
         headers: {
-
           Authorization:
             `Bearer ${token}`,
         },
       };
 
-      const res = await axios.get(
+      const res =
+        await axios.get(
 
-        "http://localhost:5000/api/orders/my-orders",
+          "http://localhost:5000/api/orders/my-orders",
 
-        config
-      );
+          config
+        );
 
       setOrders(res.data);
 
@@ -75,139 +63,52 @@ function MyOrders() {
 
       console.log(error);
 
-      alert("Failed to fetch orders");
+      alert(
+        "Failed to fetch orders"
+      );
     }
   };
 
   // =========================
-  // FETCH MAINTENANCE
+  // DATE HELPERS
   // =========================
-  const fetchMaintenanceRequests =
-    async () => {
 
-      try {
+  const getEndDate = (order) => {
 
-        const config = {
+    const startDate =
+      new Date(order.deliveryDate);
 
-          headers: {
+    const endDate =
+      new Date(startDate);
 
-            Authorization:
-              `Bearer ${token}`,
-          },
-        };
+    endDate.setMonth(
 
-        const res =
-          await axios.get(
+      endDate.getMonth() +
 
-            "http://localhost:5000/api/maintenance/my-requests",
+      order.rentalDuration
+    );
 
-            config
-          );
-
-        setMaintenanceRequests(
-          res.data
-        );
-
-      } catch (error) {
-
-        console.log(error);
-      }
-    };
-
-  // =========================
-  // GET MAINTENANCE STATUS
-  // =========================
-  const getMaintenanceStatus =
-    (productId) => {
-
-      const request =
-        maintenanceRequests.find(
-
-          (req) =>
-            req.product._id ===
-            productId
-        );
-
-      return request
-        ? request.status
-        : null;
-    };
-
-  // =========================
-  // OPEN MODAL
-  // =========================
-  const openMaintenanceModal = (
-    orderId,
-    productId
-  ) => {
-
-    setSelectedOrder(orderId);
-
-    setSelectedProduct(productId);
-
-    setShowModal(true);
+    return endDate;
   };
 
-  // =========================
-  // SUBMIT MAINTENANCE
-  // =========================
-  const submitMaintenance =
-    async () => {
+  const getDaysLeft = (order) => {
 
-      if (!issue) {
+    const endDate =
+      getEndDate(order);
 
-        return alert(
-          "Please describe the issue"
-        );
-      }
+    const today =
+      new Date();
 
-      try {
+    const diffTime =
+      endDate - today;
 
-        const config = {
+    return Math.ceil(
 
-          headers: {
+      diffTime /
 
-            Authorization:
-              `Bearer ${token}`,
-          },
-        };
-
-        await axios.post(
-
-          "http://localhost:5000/api/maintenance",
-
-          {
-            order:
-              selectedOrder,
-
-            product:
-              selectedProduct,
-
-            issue,
-          },
-
-          config
-        );
-
-        alert(
-          "Maintenance request submitted"
-        );
-
-        setShowModal(false);
-
-        setIssue("");
-
-        fetchMaintenanceRequests();
-
-      } catch (error) {
-
-        console.log(error);
-
-        alert(
-          "Failed to submit request"
-        );
-      }
-    };
+      (1000 * 60 * 60 * 24)
+    );
+  };
 
   // =========================
   // REQUEST PICKUP
@@ -220,7 +121,6 @@ function MyOrders() {
         const config = {
 
           headers: {
-
             Authorization:
               `Bearer ${token}`,
           },
@@ -255,264 +155,253 @@ function MyOrders() {
     };
 
   // =========================
-  // DOWNLOAD INVOICE
+  // OPEN RENEW MODAL
+  // =========================
+  const openRenewModal =
+    (orderId) => {
+
+      setRenewOrderId(
+        orderId
+      );
+
+      setShowRenewModal(
+        true
+      );
+    };
+
+  // =========================
+  // RENEW RENTAL
+  // =========================
+  const renewRental =
+    async () => {
+
+      try {
+
+        const config = {
+
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        };
+
+        await axios.put(
+
+          `http://localhost:5000/api/orders/${renewOrderId}/renew`,
+
+          {
+            months:
+              Number(
+                renewMonths
+              ),
+          },
+
+          config
+        );
+
+        alert(
+          `Rental renewed for ${renewMonths} month(s)`
+        );
+
+        setShowRenewModal(
+          false
+        );
+
+        fetchOrders();
+
+      } catch (error) {
+
+        console.log(error);
+
+        alert(
+          "Failed to renew rental"
+        );
+      }
+    };
+
+  // =========================
+  // DOWNLOAD PROFESSIONAL INVOICE
   // =========================
   const downloadInvoice = (order) => {
 
-    const doc = new jsPDF();
+    const doc =
+      new jsPDF();
+
+    const endDate =
+      getEndDate(order);
 
     // HEADER
-    doc.setFillColor(30, 60, 114);
+    doc.setFontSize(24);
 
-    doc.rect(0, 0, 210, 40, "F");
-
-    doc.setTextColor(255, 255, 255);
-
-    doc.setFontSize(28);
-
-    doc.text(
-      "RentEase",
-      20,
-      20
+    doc.setTextColor(
+      30,
+      60,
+      114
     );
 
-    doc.setFontSize(12);
-
     doc.text(
-      "Rental Platform Invoice",
+      "RentEase Invoice",
       20,
+      25
+    );
+
+    // LINE
+    doc.setDrawColor(
+      30,
+      60,
+      114
+    );
+
+    doc.line(
+      20,
+      30,
+      190,
       30
     );
 
-    doc.setFontSize(24);
-
-    doc.text(
-      "INVOICE",
-      145,
-      18
-    );
-
-    doc.setFontSize(11);
-
-    doc.text(
-      `Invoice ID: ${order._id
-        .slice(-6)
-        .toUpperCase()}`,
-      130,
-      28
-    );
-
-    doc.text(
-      `Date: ${new Date()
-        .toLocaleDateString()}`,
-      130,
-      35
-    );
-
-    doc.setTextColor(0, 0, 0);
-
     // CUSTOMER DETAILS
-    doc.setFillColor(240, 240, 240);
+    doc.setFontSize(14);
 
-    doc.rect(15, 55, 180, 50, "F");
-
-    doc.setFontSize(16);
-
-    doc.text(
-      "Customer Details",
-      20,
-      68
-    );
-
-    doc.setFontSize(12);
-
-    doc.text(
-      `Name: ${userInfo.name}`,
-      20,
-      78
+    doc.setTextColor(
+      0,
+      0,
+      0
     );
 
     doc.text(
-      `Email: ${userInfo.email}`,
+      `Customer Name: ${order.customerName}`,
       20,
-      86
-    );
-
-    // ✅ PHONE NUMBER
-    doc.text(
-      `Phone: ${userInfo.phone}`,
-      20,
-      94
+      45
     );
 
     doc.text(
-      `Address: ${order.address}`,
+      `Email: ${order.customerEmail}`,
       20,
-      102
+      55
+    );
+
+    doc.text(
+      `Phone: ${order.customerPhone}`,
+      20,
+      65
     );
 
     // ORDER DETAILS
-    doc.setFillColor(245, 245, 255);
-
-    doc.rect(15, 118, 180, 60, "F");
-
-    doc.setFontSize(16);
-
     doc.text(
-      "Order Details",
+      `Order ID: ${order._id}`,
       20,
-      130
-    );
-
-    doc.setFontSize(12);
-
-    doc.text(
-      `Rental Duration: ${order.rentalDuration} Months`,
-      20,
-      142
-    );
-
-    doc.text(
-      `Delivery Date: ${new Date(
-        order.deliveryDate
-      ).toLocaleDateString()}`,
-      20,
-      150
-    );
-
-    doc.text(
-      `Delivery Slot: ${order.deliverySlot}`,
-      20,
-      158
-    );
-
-    doc.text(
-      `Pickup Status: ${order.pickupStatus || "Not Scheduled"}`,
-      20,
-      166
-    );
-
-    doc.text(
-      `Order Status: ${order.status}`,
-      110,
-      142
+      80
     );
 
     doc.text(
       `Payment Status: ${order.paymentStatus}`,
-      110,
-      150
-    );
-
-    doc.text(
-      `Delivery Status: ${order.deliveryStatus}`,
-      110,
-      158
-    );
-
-    // PRODUCTS TABLE HEADER
-    doc.setFillColor(30, 60, 114);
-
-    doc.rect(15, 190, 180, 10, "F");
-
-    doc.setTextColor(255, 255, 255);
-
-    doc.setFontSize(12);
-
-    doc.text(
-      "Product",
       20,
-      197
+      90
     );
 
     doc.text(
-      "Qty",
-      105,
-      197
+      `Rental Duration: ${order.rentalDuration} Month(s)`,
+      20,
+      100
     );
 
     doc.text(
-      "Rent",
-      130,
-      197
+      `Delivery Date: ${new Date(order.deliveryDate).toLocaleDateString()}`,
+      20,
+      110
     );
 
     doc.text(
-      "Subtotal",
-      165,
-      197
+      `Expiry Date: ${endDate.toLocaleDateString()}`,
+      20,
+      120
     );
 
     // PRODUCTS
-    doc.setTextColor(0, 0, 0);
-
-    let y = 213;
-
-    order.items.forEach((item) => {
-
-      const subtotal =
-        item.pricePerMonth *
-        item.quantity;
-
-      doc.text(
-        item.name,
-        20,
-        y
-      );
-
-      doc.text(
-        String(item.quantity),
-        107,
-        y
-      );
-
-      doc.text(
-        `₹${item.pricePerMonth}`,
-        128,
-        y
-      );
-
-      doc.text(
-        `₹${subtotal}`,
-        163,
-        y
-      );
-
-      y += 12;
-    });
-
-    // TOTAL
-    y += 12;
-
-    doc.setFillColor(30, 60, 114);
-
-    doc.rect(110, y, 85, 20, "F");
-
-    doc.setTextColor(255, 255, 255);
+    let y = 140;
 
     doc.setFontSize(18);
 
     doc.text(
-      `Total: ₹${order.totalAmount}`,
-      120,
-      y + 13
+      "Products",
+      20,
+      y
+    );
+
+    y += 15;
+
+    order.items.forEach(
+      (item, index) => {
+
+        doc.setFontSize(13);
+
+        doc.text(
+
+          `${index + 1}. ${item.name}`,
+
+          25,
+
+          y
+        );
+
+        y += 10;
+
+        doc.text(
+
+          `Quantity: ${item.quantity}`,
+
+          35,
+
+          y
+        );
+
+        y += 10;
+
+        doc.text(
+
+          `Monthly Rent: ₹${item.pricePerMonth}`,
+
+          35,
+
+          y
+        );
+
+        y += 15;
+      }
+    );
+
+    // TOTAL
+    doc.setFontSize(18);
+
+    doc.setTextColor(
+      22,
+      163,
+      74
+    );
+
+    doc.text(
+
+      `Total Amount Paid: ₹${order.totalAmount}`,
+
+      20,
+
+      y + 10
     );
 
     // FOOTER
-    doc.setTextColor(120);
+    doc.setFontSize(12);
 
-    doc.setFontSize(11);
-
-    doc.text(
-      "Thank you for choosing RentEase ❤️",
-      20,
-      280
+    doc.setTextColor(
+      100
     );
 
     doc.text(
-      "For support contact: rentease22@gmail.com",
+
+      "Thank you for choosing RentEase 🚀",
+
       20,
-      287
+
+      285
     );
 
     doc.save(
@@ -534,9 +423,10 @@ function MyOrders() {
       <h1
         style={{
           textAlign: "center",
-          marginBottom: "40px",
           fontSize: "55px",
-          color: "black",
+          marginBottom: "40px",
+          color: "white",
+          fontWeight: "bold",
         }}
       >
         My Orders 📦
@@ -547,7 +437,7 @@ function MyOrders() {
         <h2
           style={{
             textAlign: "center",
-            color: "black",
+            color: "white",
           }}
         >
           No Orders Found
@@ -557,64 +447,219 @@ function MyOrders() {
 
         <div
           style={{
+            maxWidth: "1100px",
+            margin: "auto",
             display: "flex",
             flexDirection: "column",
             gap: "30px",
-            maxWidth: "1000px",
-            margin: "auto",
           }}
         >
 
-          {orders.map((order) => (
+          {orders.map((order) => {
 
-            <div
-              key={order._id}
-              style={{
-                background: "white",
-                borderRadius: "20px",
-                padding: "30px",
-                boxShadow:
-                  "0 10px 30px rgba(0,0,0,0.2)",
-              }}
-            >
+            const daysLeft =
+              getDaysLeft(order);
 
-              <h2
+            const endDate =
+              getEndDate(order);
+
+            return (
+
+              <div
+                key={order._id}
                 style={{
-                  color: "#1e3c72",
-                  marginBottom: "20px",
+                  background: "white",
+                  borderRadius: "24px",
+                  padding: "35px",
+                  boxShadow:
+                    "0 10px 30px rgba(0,0,0,0.2)",
                 }}
               >
-                Order ID:
-                {" "}
-                {order._id}
-              </h2>
 
-              {/* ✅ PHONE */}
-              <h3>
-                Phone:
-                {" "}
-                {order.customerPhone}
-              </h3>
+                {/* HEADER */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    flexWrap: "wrap",
+                    marginBottom: "25px",
+                  }}
+                >
 
-              {order.items.map((item) => {
+                  <div>
 
-                const maintenanceStatus =
-                  getMaintenanceStatus(
-                    item.product
-                  );
+                    <h2
+                      style={{
+                        color: "#1e3c72",
+                      }}
+                    >
+                      Order ID:
+                    </h2>
 
-                return (
+                    <p>
+                      {order._id}
+                    </p>
+
+                  </div>
+
+                  <div>
+
+                    <h2
+                      style={{
+                        color: "#1e3c72",
+                      }}
+                    >
+                      Payment
+                    </h2>
+
+                    <p
+                      style={{
+                        color:
+                          order.paymentStatus ===
+                          "Paid"
+                            ? "green"
+                            : "red",
+
+                        fontWeight:
+                          "bold",
+                      }}
+                    >
+                      {
+                        order.paymentStatus
+                      }
+                    </p>
+
+                  </div>
+
+                </div>
+
+                {/* RENTAL STATUS */}
+                <div
+                  style={{
+                    background:
+
+                      daysLeft <= 0
+
+                        ? "#fee2e2"
+
+                        : daysLeft <= 5
+
+                        ? "#fef3c7"
+
+                        : "#dcfce7",
+
+                    padding: "20px",
+
+                    borderRadius: "16px",
+
+                    marginBottom: "25px",
+                  }}
+                >
+
+                  <h2>
+
+                    {daysLeft <= 0
+                      ? "🔴 Rental Expired"
+                      : daysLeft <= 5
+                      ? "⚠️ Expiring Soon"
+                      : "🟢 Active Rental"}
+
+                  </h2>
+
+                  <p>
+                    Days Left:
+                    {" "}
+                    {daysLeft}
+                  </p>
+
+                  <p>
+                    Expiry Date:
+                    {" "}
+                    {
+                      endDate.toLocaleDateString()
+                    }
+                  </p>
+
+                </div>
+
+                {/* ORDER DETAILS */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fit,minmax(220px,1fr))",
+                    gap: "20px",
+                    marginBottom: "30px",
+                  }}
+                >
+
+                  <div style={styles.infoCard}>
+                    <h3>
+                      Customer
+                    </h3>
+
+                    <p>
+                      {
+                        order.customerName
+                      }
+                    </p>
+                  </div>
+
+                  <div style={styles.infoCard}>
+                    <h3>
+                      Phone
+                    </h3>
+
+                    <p>
+                      {
+                        order.customerPhone
+                      }
+                    </p>
+                  </div>
+
+                  <div style={styles.infoCard}>
+                    <h3>
+                      Delivery Date
+                    </h3>
+
+                    <p>
+                      {
+                        new Date(
+                          order.deliveryDate
+                        ).toLocaleDateString()
+                      }
+                    </p>
+                  </div>
+
+                  <div style={styles.infoCard}>
+                    <h3>
+                      Duration
+                    </h3>
+
+                    <p>
+                      {
+                        order.rentalDuration
+                      }
+                      {" "}
+                      Month(s)
+                    </p>
+                  </div>
+
+                </div>
+
+                {/* PRODUCTS */}
+                {order.items.map((item) => (
 
                   <div
                     key={item._id}
                     style={{
                       display: "flex",
                       gap: "20px",
-                      marginBottom: "20px",
+                      marginBottom: "25px",
                       borderBottom:
                         "1px solid #ddd",
-                      paddingBottom:
-                        "20px",
+                      paddingBottom: "20px",
                     }}
                   >
 
@@ -622,10 +667,10 @@ function MyOrders() {
                       src={item.image}
                       alt={item.name}
                       style={{
-                        width: "140px",
-                        height: "120px",
+                        width: "150px",
+                        height: "130px",
                         objectFit: "cover",
-                        borderRadius: "12px",
+                        borderRadius: "14px",
                       }}
                     />
 
@@ -642,22 +687,152 @@ function MyOrders() {
                       </p>
 
                       <p>
+                        Monthly Rent:
+                        {" "}
                         ₹
                         {
                           item.pricePerMonth
                         }
-                        {" "}
-                        / month
                       </p>
 
                     </div>
 
                   </div>
-                );
-              })}
+                ))}
+
+                {/* TOTAL */}
+                <div
+                  style={{
+                    marginBottom: "25px",
+                  }}
+                >
+
+                  <h2
+                    style={{
+                      color: "#16a34a",
+                    }}
+                  >
+                    Total Paid:
+                    {" "}
+                    ₹
+                    {order.totalAmount}
+                  </h2>
+
+                </div>
+
+                {/* BUTTONS */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "15px",
+                    flexWrap: "wrap",
+                  }}
+                >
+
+                  <button
+                    onClick={() =>
+                      downloadInvoice(order)
+                    }
+                    style={styles.invoiceBtn}
+                  >
+                    Download Invoice
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      requestPickup(
+                        order._id
+                      )
+                    }
+                    style={styles.pickupBtn}
+                  >
+                    Return Product
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      openRenewModal(
+                        order._id
+                      )
+                    }
+                    style={styles.renewBtn}
+                  >
+                    Renew Rental
+                  </button>
+
+                </div>
+
+              </div>
+            );
+          })}
+
+        </div>
+      )}
+
+      {/* RENEW MODAL */}
+      {showRenewModal && (
+
+        <div style={styles.modalOverlay}>
+
+          <div style={styles.modal}>
+
+            <h2>
+              Renew Rental 🔄
+            </h2>
+
+            <select
+              value={renewMonths}
+              onChange={(e) =>
+                setRenewMonths(
+                  e.target.value
+                )
+              }
+              style={styles.select}
+            >
+
+              <option value={1}>
+                1 Month
+              </option>
+
+              <option value={3}>
+                3 Months
+              </option>
+
+              <option value={6}>
+                6 Months
+              </option>
+
+            </select>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "15px",
+                marginTop: "20px",
+              }}
+            >
+
+              <button
+                onClick={renewRental}
+                style={styles.confirmBtn}
+              >
+                Confirm Renewal
+              </button>
+
+              <button
+                onClick={() =>
+                  setShowRenewModal(
+                    false
+                  )
+                }
+                style={styles.cancelBtn}
+              >
+                Cancel
+              </button>
 
             </div>
-          ))}
+
+          </div>
 
         </div>
       )}
@@ -665,5 +840,150 @@ function MyOrders() {
     </div>
   );
 }
+
+const styles = {
+
+  infoCard: {
+
+    background: "#f8fafc",
+
+    padding: "18px",
+
+    borderRadius: "14px",
+  },
+
+  invoiceBtn: {
+
+    background: "#2563eb",
+
+    color: "white",
+
+    border: "none",
+
+    padding: "14px 20px",
+
+    borderRadius: "12px",
+
+    cursor: "pointer",
+
+    fontWeight: "bold",
+  },
+
+  pickupBtn: {
+
+    background: "#dc2626",
+
+    color: "white",
+
+    border: "none",
+
+    padding: "14px 20px",
+
+    borderRadius: "12px",
+
+    cursor: "pointer",
+
+    fontWeight: "bold",
+  },
+
+  renewBtn: {
+
+    background: "#16a34a",
+
+    color: "white",
+
+    border: "none",
+
+    padding: "14px 20px",
+
+    borderRadius: "12px",
+
+    cursor: "pointer",
+
+    fontWeight: "bold",
+  },
+
+  modalOverlay: {
+
+    position: "fixed",
+
+    top: 0,
+
+    left: 0,
+
+    width: "100%",
+
+    height: "100%",
+
+    background:
+      "rgba(0,0,0,0.5)",
+
+    display: "flex",
+
+    justifyContent: "center",
+
+    alignItems: "center",
+
+    zIndex: 1000,
+  },
+
+  modal: {
+
+    background: "white",
+
+    padding: "30px",
+
+    borderRadius: "20px",
+
+    width: "350px",
+
+    textAlign: "center",
+  },
+
+  select: {
+
+    width: "100%",
+
+    padding: "12px",
+
+    marginTop: "20px",
+
+    borderRadius: "10px",
+  },
+
+  confirmBtn: {
+
+    background: "#16a34a",
+
+    color: "white",
+
+    border: "none",
+
+    padding: "12px 18px",
+
+    borderRadius: "10px",
+
+    cursor: "pointer",
+
+    fontWeight: "bold",
+  },
+
+  cancelBtn: {
+
+    background: "#dc2626",
+
+    color: "white",
+
+    border: "none",
+
+    padding: "12px 18px",
+
+    borderRadius: "10px",
+
+    cursor: "pointer",
+
+    fontWeight: "bold",
+  },
+};
 
 export default MyOrders;

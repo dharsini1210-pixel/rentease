@@ -10,13 +10,30 @@ const {
 
   getAllOrders,
 
+  getProductRentalDetails,
+
   updateOrderStatus,
 
   updateDeliveryStatus,
 
   requestPickup,
 
-  updatePickupStatus
+  updatePickupStatus,
+
+  renewRental,
+
+  // =========================
+  // ANALYTICS
+  // =========================
+  getMonthlyStatement,
+
+  getDailyCustomers,
+
+  getTopProducts,
+
+  searchCustomerOrders,
+
+  getRegularCustomers
 
 } = require(
   "../controllers/orderController"
@@ -53,6 +70,69 @@ router.get(
   "/",
   protect,
   getAllOrders
+);
+
+// =========================
+// PRODUCT RENTAL ANALYTICS
+// =========================
+router.get(
+  "/product-analytics/:productName",
+  protect,
+  getProductRentalDetails
+);
+
+// =========================
+// MONTHLY STATEMENT
+// =========================
+router.get(
+  "/admin/monthly-statement",
+  protect,
+  getMonthlyStatement
+);
+
+// =========================
+// DAILY CUSTOMERS
+// =========================
+router.get(
+  "/admin/daily-customers",
+  protect,
+  getDailyCustomers
+);
+
+// =========================
+// TOP PRODUCTS
+// =========================
+router.get(
+  "/admin/top-products",
+  protect,
+  getTopProducts
+);
+
+// =========================
+// SEARCH CUSTOMER
+// =========================
+router.get(
+  "/admin/customer-search",
+  protect,
+  searchCustomerOrders
+);
+
+// =========================
+// REGULAR CUSTOMERS
+// =========================
+router.get(
+  "/admin/regular-customers",
+  protect,
+  getRegularCustomers
+);
+
+// =========================
+// RENEW RENTAL
+// =========================
+router.put(
+  "/:id/renew",
+  protect,
+  renewRental
 );
 
 // =========================

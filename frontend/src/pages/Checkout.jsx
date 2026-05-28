@@ -17,7 +17,7 @@ import {
 // BACKEND URL
 // =========================
 const API_URL =
-  "https://YOUR-BACKEND.onrender.com";
+  "http://localhost:5000";
 
 function Checkout() {
 
@@ -90,21 +90,30 @@ function Checkout() {
 
             {
               headers: {
+
                 Authorization:
                   `Bearer ${token}`,
               },
             }
           );
 
-        setCart(
+        console.log(
+          "CART DATA:",
           res.data
+        );
+
+        setCart(
+          res.data || []
         );
 
         setLoading(false);
 
       } catch (error) {
 
-        console.log(error);
+        console.log(
+          "FETCH CART ERROR:",
+          error
+        );
 
         setLoading(false);
       }
@@ -120,10 +129,12 @@ function Checkout() {
 
         sum +
 
-        item.product
-          .pricePerMonth *
+        (
+          item?.product
+            ?.pricePerMonth || 0
+        ) *
 
-          item.quantity,
+        (item.quantity || 1),
 
       0
     );
@@ -135,10 +146,12 @@ function Checkout() {
 
         sum +
 
-        item.product
-          .deposit *
+        (
+          item?.product
+            ?.deposit || 0
+        ) *
 
-          item.quantity,
+        (item.quantity || 1),
 
       0
     );
@@ -192,23 +205,26 @@ function Checkout() {
           `${API_URL}/api/orders`,
 
           {
+
             items:
               cart.map(
                 (item) => ({
+
                   product:
-                    item.product._id,
+                    item.product?._id,
 
                   name:
-                    item.product.name,
+                    item.product?.name,
 
                   image:
-                    item.product.image,
+                    item.product?.image,
 
                   pricePerMonth:
-                    item.product.pricePerMonth,
+                    item.product
+                      ?.pricePerMonth || 0,
 
                   quantity:
-                    item.quantity,
+                    item.quantity || 1,
                 })
               ),
 
@@ -228,13 +244,16 @@ function Checkout() {
 
           {
             headers: {
+
               Authorization:
                 `Bearer ${token}`,
             },
           }
         );
 
+        // =========================
         // CLEAR CART
+        // =========================
         for (
           const item of cart
         ) {
@@ -245,6 +264,7 @@ function Checkout() {
 
             {
               headers: {
+
                 Authorization:
                   `Bearer ${token}`,
               },
@@ -266,7 +286,10 @@ function Checkout() {
 
       } catch (error) {
 
-        console.log(error);
+        console.log(
+          "PLACE ORDER ERROR:",
+          error
+        );
 
         toast.error(
           "Order Failed"
@@ -288,6 +311,18 @@ function Checkout() {
 
         toast.error(
           "Please fill all fields"
+        );
+
+        return;
+      }
+
+      // =========================
+      // VALIDATE TOTAL
+      // =========================
+      if (total <= 0) {
+
+        toast.error(
+          "Cart total is invalid"
         );
 
         return;
@@ -326,7 +361,7 @@ function Checkout() {
         }
 
         // =========================
-        // CREATE ORDER
+        // CREATE PAYMENT ORDER
         // =========================
         const orderRes =
           await axios.post(
@@ -341,6 +376,11 @@ function Checkout() {
 
         const order =
           orderRes.data;
+
+        console.log(
+          "PAYMENT ORDER:",
+          order
+        );
 
         // =========================
         // RAZORPAY OPTIONS
@@ -366,7 +406,7 @@ function Checkout() {
             order.id,
 
           // =========================
-          // PAYMENT SUCCESS
+          // SUCCESS HANDLER
           // =========================
           handler:
             async function (
@@ -418,7 +458,7 @@ function Checkout() {
                 } else {
 
                   toast.error(
-                    "❌ Payment Verification Failed"
+                    "Payment Verification Failed"
                   );
                 }
 
@@ -426,7 +466,7 @@ function Checkout() {
 
                 console.log(
                   "VERIFY ERROR:",
-                  error.response?.data || error
+                  error
                 );
 
                 toast.error(
@@ -460,7 +500,10 @@ function Checkout() {
 
       } catch (error) {
 
-        console.log(error);
+        console.log(
+          "PAYMENT ERROR:",
+          error
+        );
 
         toast.error(
           "Payment Failed"
@@ -621,7 +664,7 @@ function Checkout() {
 
         </div>
 
-        {/* PAYMENT METHOD */}
+        {/* PAYMENT */}
         <div style={styles.section}>
 
           <label style={styles.label}>

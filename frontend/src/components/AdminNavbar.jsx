@@ -28,6 +28,18 @@ function AdminNavbar() {
           Orders
         </Link>
 
+        {/* ACTIVE RENTALS */}
+        <Link
+          to="/admin/active-rentals"
+          style={{
+            ...styles.link,
+
+            color: "#38bdf8",
+          }}
+        >
+          Active Rentals
+        </Link>
+
         <Link
           to="/admin/manage-products"
           style={styles.link}
@@ -42,7 +54,7 @@ function AdminNavbar() {
           Maintenance
         </Link>
 
-        {/* NEW PICKUP REQUESTS TAB */}
+        {/* PICKUP REQUESTS */}
         <Link
           to="/admin/pickups"
           style={{
@@ -66,7 +78,8 @@ const styles = {
 
     width: "100%",
 
-    background: "#071739",
+    background:
+      "linear-gradient(135deg,#071739,#0f172a)",
 
     color: "white",
 
@@ -86,6 +99,9 @@ const styles = {
     top: 0,
 
     zIndex: 1000,
+
+    boxShadow:
+      "0 4px 20px rgba(0,0,0,0.25)",
   },
 
   logo: {
@@ -103,7 +119,7 @@ const styles = {
 
     display: "flex",
 
-    gap: "35px",
+    gap: "30px",
 
     alignItems: "center",
 
@@ -121,6 +137,10 @@ const styles = {
     fontSize: "18px",
 
     transition: "0.3s",
+
+    padding: "8px 12px",
+
+    borderRadius: "8px",
   },
 };
 

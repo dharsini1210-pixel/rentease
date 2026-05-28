@@ -4,10 +4,12 @@ const orderSchema =
   new mongoose.Schema(
 
     {
+
       // =========================
       // USER
       // =========================
       user: {
+
         type:
           mongoose.Schema.Types.ObjectId,
 
@@ -20,18 +22,23 @@ const orderSchema =
       // CUSTOMER INFO
       // =========================
       customerName: {
+
         type: String,
+
         required: true,
       },
 
       customerEmail: {
+
         type: String,
+
         required: true,
       },
 
-      // ✅ PHONE NUMBER
       customerPhone: {
+
         type: String,
+
         required: true,
       },
 
@@ -39,8 +46,11 @@ const orderSchema =
       // ORDER ITEMS
       // =========================
       items: [
+
         {
+
           product: {
+
             type:
               mongoose.Schema.Types.ObjectId,
 
@@ -50,102 +60,131 @@ const orderSchema =
           },
 
           name: {
+
             type: String,
+
             required: true,
           },
 
           image: {
+
             type: String,
+
             required: true,
           },
 
           pricePerMonth: {
+
             type: Number,
+
             required: true,
           },
 
           quantity: {
+
             type: Number,
+
             default: 1,
           },
         },
       ],
 
       // =========================
-      // RENTAL DURATION
+      // RENTAL
       // =========================
       rentalDuration: {
+
         type: Number,
+
         required: true,
       },
 
+      rentalStartDate: {
+
+        type: Date,
+      },
+
+      rentalEndDate: {
+
+        type: Date,
+      },
+
       // =========================
-      // TOTAL AMOUNT
+      // PAYMENT
       // =========================
       totalAmount: {
+
         type: Number,
+
         required: true,
       },
 
-      // =========================
-      // DELIVERY DATE
-      // =========================
-      deliveryDate: {
-        type: Date,
-        required: true,
+      paymentMethod: {
+
+        type: String,
+
+        default: "ONLINE",
       },
 
-      // =========================
-      // DELIVERY SLOT
-      // =========================
-      deliverySlot: {
+      paymentStatus: {
+
         type: String,
 
         enum: [
+
+          "Pending",
+
+          "Paid",
+
+          "Failed",
+        ],
+
+        default: "Pending",
+      },
+
+      invoiceNumber: {
+
+        type: String,
+
+        default: "",
+      },
+
+      // =========================
+      // DELIVERY
+      // =========================
+      deliveryDate: {
+
+        type: Date,
+
+        required: true,
+      },
+
+      deliverySlot: {
+
+        type: String,
+
+        enum: [
+
           "Morning",
+
           "Afternoon",
+
           "Evening",
         ],
 
         default: "Morning",
       },
 
-      // =========================
-      // ADDRESS
-      // =========================
-      address: {
-        type: String,
-        required: true,
-      },
-
-      // =========================
-      // ORDER STATUS
-      // =========================
-      status: {
-        type: String,
-
-        enum: [
-          "Pending",
-          "Placed",
-          "Confirmed",
-          "Delivered",
-          "Completed",
-          "Cancelled",
-        ],
-
-        default: "Placed",
-      },
-
-      // =========================
-      // DELIVERY STATUS
-      // =========================
       deliveryStatus: {
+
         type: String,
 
         enum: [
+
           "Scheduled",
+
           "Out for Delivery",
-          "Out For Delivery",
+
           "Delivered",
         ],
 
@@ -153,39 +192,80 @@ const orderSchema =
       },
 
       // =========================
-      // PICKUP DATE
+      // ADDRESS
       // =========================
-      pickupDate: {
+      address: {
+
         type: String,
-        default: "",
+
+        required: true,
       },
 
       // =========================
-      // PICKUP SLOT
+      // ORDER STATUS
       // =========================
-      pickupSlot: {
+      status: {
+
         type: String,
 
         enum: [
+
+          "Placed",
+
+          "Active",
+
+          "Expired",
+
+          "Cancelled",
+
+          "Completed",
+        ],
+
+        default: "Placed",
+      },
+
+      // =========================
+      // PICKUP
+      // =========================
+      pickupDate: {
+
+        type: String,
+
+        default: "",
+      },
+
+      pickupSlot: {
+
+        type: String,
+
+        enum: [
+
           "",
+
           "Morning",
+
           "Afternoon",
+
           "Evening",
         ],
 
         default: "",
       },
 
-      // =========================
-      // PICKUP STATUS
-      // =========================
       pickupStatus: {
+
         type: String,
 
         enum: [
+
           "Not Scheduled",
+
           "Requested",
+
           "Pickup Scheduled",
+
+          "Auto Pickup Scheduled",
+
           "Picked Up",
         ],
 
@@ -193,22 +273,50 @@ const orderSchema =
       },
 
       // =========================
-      // PAYMENT STATUS
+      // TIMELINE
       // =========================
-      paymentStatus: {
-        type: String,
+      timeline: [
 
-        enum: [
-          "Pending",
-          "Paid",
-          "Failed",
-        ],
+        {
 
-        default: "Pending",
+          status: String,
+
+          date: {
+
+            type: Date,
+
+            default: Date.now,
+          },
+        },
+      ],
+
+      // =========================
+      // EMAIL FLAGS
+      // =========================
+      reminderSent: {
+
+        type: Boolean,
+
+        default: false,
+      },
+
+      pickupEmailSent: {
+
+        type: Boolean,
+
+        default: false,
+      },
+
+      renewalEmailSent: {
+
+        type: Boolean,
+
+        default: false,
       },
     },
 
     {
+
       timestamps: true,
     }
   );

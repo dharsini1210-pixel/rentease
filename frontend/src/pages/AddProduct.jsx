@@ -37,7 +37,7 @@ function AddProduct() {
 
       const res = await axios.post(
 
-        "http://localhost:5000/api/products",
+        "https://rentease-baackend.onrender.com/api/products",
 
         {
           name,

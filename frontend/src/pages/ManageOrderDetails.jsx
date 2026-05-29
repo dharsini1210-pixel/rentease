@@ -52,7 +52,7 @@ function ManageOrderDetails() {
 
       const res = await axios.get(
 
-        "http://localhost:5000/api/orders",
+        "https://rentease-baackend.onrender.com/api/orders",
 
         config
       );
@@ -99,7 +99,7 @@ function ManageOrderDetails() {
       // UPDATE ORDER STATUS
       await axios.put(
 
-        `http://localhost:5000/api/orders/${id}/status`,
+        `https://rentease-baackend.onrender.com/api/orders/${id}/status`,
 
         {
           status: orderStatus,
@@ -111,7 +111,7 @@ function ManageOrderDetails() {
       // UPDATE DELIVERY STATUS
       await axios.put(
 
-        `http://localhost:5000/api/orders/${id}/delivery-status`,
+        `https://rentease-baackend.onrender.com/api/orders/${id}/delivery-status`,
 
         {
           deliveryStatus,

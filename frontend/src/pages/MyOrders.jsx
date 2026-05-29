@@ -52,7 +52,7 @@ function MyOrders() {
       const res =
         await axios.get(
 
-          "http://localhost:5000/api/orders/my-orders",
+          "https://rentease-baackend.onrender.com/api/orders/my-orders",
 
           config
         );
@@ -128,7 +128,7 @@ function MyOrders() {
 
         await axios.put(
 
-          `http://localhost:5000/api/orders/${orderId}/request-pickup`,
+          `https://rentease-baackend.onrender.com/api/orders/${orderId}/request-pickup`,
 
           {
             pickupStatus:
@@ -187,7 +187,7 @@ function MyOrders() {
 
         await axios.put(
 
-          `http://localhost:5000/api/orders/${renewOrderId}/renew`,
+          `https://rentease-baackend.onrender.com/api/orders/${renewOrderId}/renew`,
 
           {
             months:

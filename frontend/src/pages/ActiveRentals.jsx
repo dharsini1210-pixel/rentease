@@ -160,7 +160,7 @@ function ActiveRentals() {
 
       const res = await axios.get(
 
-        "http://localhost:5000/api/orders",
+        "https://rentease-baackend.onrender.com/api/orders",
 
         config
       );

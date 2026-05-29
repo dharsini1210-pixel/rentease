@@ -33,7 +33,7 @@ function ProductDetails() {
       setLoading(true);
 
       const res = await axios.get(
-        `http://localhost:5000/api/products/${id}`
+        `https://rentease-baackend.onrender.com/api/products/${id}`
       );
 
       setProduct(res.data);
@@ -90,7 +90,7 @@ function ProductDetails() {
 
       await axios.post(
 
-        "http://localhost:5000/api/cart",
+        "https://rentease-baackend.onrender.com/api/cart",
 
         {
           productId: product._id,

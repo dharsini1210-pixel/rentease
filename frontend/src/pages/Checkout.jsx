@@ -17,7 +17,7 @@ import {
 // BACKEND URL
 // =========================
 const API_URL =
-  "http://localhost:5000";
+  "https://rentease-baackend.onrender.com";
 
 function Checkout() {
 
